@@ -8,9 +8,9 @@
 from itemadapter import ItemAdapter
 import json
 
-class JjyuriPipeline:
+class YuriPipeline:
     def open_spider(self, spider):
-        self.file = open('items.json', 'w', encoding='utf-8')
+        self.file = open('{}-items.json'.format(spider.name), 'w', encoding='utf-8')
 
     def close_spider(self, spider):
         self.file.close()

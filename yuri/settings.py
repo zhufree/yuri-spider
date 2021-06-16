@@ -1,4 +1,4 @@
-# Scrapy settings for changpei project
+# Scrapy settings for jjyuri project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -7,17 +7,17 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'changpei'
+BOT_NAME = 'yuri'
 
-SPIDER_MODULES = ['changpei.spiders']
-NEWSPIDER_MODULE = 'changpei.spiders'
+SPIDER_MODULES = ['yuri.spiders']
+NEWSPIDER_MODULE = 'yuri.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'changpei (+http://www.yourdomain.com)'
+#USER_AGENT = 'jjyuri (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -38,20 +38,26 @@ ROBOTSTXT_OBEY = True
 
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-  'X-Requested-With': 'XMLHttpRequest'
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'Accept-Encoding': 'gzip, deflate',
+  'Connection': 'keep-alive',
+  'Host': 'www.jjwxc.net',
+  'Upgrade-Insecure-Requests': 1,
+  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+  'Cookie': '__yjs_duid=1_0d77b5fcf367ab0fc8bc5480456519121622557201139; UM_distinctid=179c7f213ca812-03bc548b3b6751-f7f1939-144000-179c7f213cbeb0; smidV2=20210601222035f55cc93c348af50281869048e1f4538500e74138f6c2bd820; token=MTMzOTQwNjN8OTU2NmQyNjc2MmViZWEzODc3YzU3MDM2M2ZlOTVkMzF8fDk2MyoqKioqKkBxcS5jb218fDI1OTIwMDB8MXx8fOaZi%2Baxn%2BeUqOaIt3wxfG1vYmlsZXwx; timeOffset_o=-170.60009765625; testcookie=yes; JJEVER=%7B%22fenzhan%22%3A%22dm%22%2C%22nicknameAndsign%22%3A%222%257E%2529%2524%25E5%258C%2597%25E6%2588%258A%22%2C%22foreverreader%22%3A%2213394063%22%2C%22desid%22%3A%22T1ZG6yLQGL2u0u7kFzwZZqL2BdnSEW7s%22%2C%22sms_total%22%3A%223%22%2C%22user_signin_days%22%3A%2220210615_13394063_0%22%7D; Hm_lvt_bc3b748c21fe5cf393d26c12b2c38d99=1623504487,1623577440,1623587740,1623716721; JJSESS=%7B%22clicktype%22%3A%22%22%7D; CNZZDATA30075907=cnzz_eid%3D759150034-1622556863-%26ntime%3D1623752648; Hm_lpvt_bc3b748c21fe5cf393d26c12b2c38d99=1623756698',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
 }
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'changpei.middlewares.ChangpeiSpiderMiddleware': 543,
+#    'jjyuri.middlewares.JjyuriSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    'changpei.middlewares.ChangpeiDownloaderMiddleware': 543,
+#    'jjyuri.middlewares.JjyuriDownloaderMiddleware': 543,
 #}
 
 # Enable or disable extensions
@@ -63,7 +69,7 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'changpei.pipelines.ChangpeiPipeline': 300,
+   'yuri.pipelines.YuriPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
