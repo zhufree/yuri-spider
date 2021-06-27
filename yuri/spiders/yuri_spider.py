@@ -3,20 +3,20 @@ import scrapy
 
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
+    # name = "jjwxc-list"
     # 804页
 
     start_urls = [
-        'http://www.jjwxc.net/bookbase.php?xx3=3&page=14',
+        'http://www.jjwxc.net/bookbase.php?xx3=3',
     ]
 
     def parse(self, response):
         current_page_list = []
-        print(response.text)
         for tr in response.css('table.cytable tr')[1:]:
             current_novel = {
                 'author': tr.css('td:first-child>a::text').get().strip(),
                 'author_url': 'http://www.jjwxc.net/' + tr.css('td:first-child>a::attr(href)').get().strip(),
-                'title': tr.css('td:nth-child(2)>a::text').get().strip(),
+                'title': tr.css('td:nth-child(2)>a::text').get().strip() if tr.css('td:nth-child(2)>a::text').get() != None else '***',
                 'book_url':'http://www.jjwxc.net/' +  tr.css('td:nth-child(2)>a::attr(href)').get().strip(),
                 'type': tr.css('td:nth-child(3)::text').get().strip(),  # 原创-百合-近代现代-爱情
                 'style': tr.css('td:nth-child(4)::text').get().strip(),  # 暗黑
@@ -24,26 +24,37 @@ class YuriSpider(scrapy.Spider):
                 'wordcount': tr.css('td:nth-child(6)::text').get().strip(),
                 'publish_time': tr.css('td:nth-child(8)::text').get().strip(),
             }
+            current_novel['bid'] = 'jj' + current_novel['book_url'].split('=')[-1]
+            current_novel['aid'] = 'jj' + current_novel['author_url'].split('=')[-1]
             current_page_list.append(current_novel)
             # open novel page for more info
-            # yield scrapy.Request(current_novel['book_url'], self.parse_novel_page, 
-            #     cb_kwargs=dict(data=current_novel))
+            yield scrapy.Request(current_novel['book_url'], self.parse_novel_page, 
+                cb_kwargs=dict(data=current_novel))
+            # yield current_novel
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        print(len(current_page_list))
         if len(current_page_list) >= 90:
             next_page = response.urljoin(next_page)
-            print(next_page)
             yield scrapy.Request(next_page, callback=self.parse)
 
     def parse_novel_page(self, response, data):
         data['collectionCount'] = response.css('span[itemprop="collectedCount"]::text').get()
-        data['tags'] = [i.strip() for i in response.css('div.smallreadbody a::text').getall() if len(i.strip()) > 0]
+        # remove useless tag
+        tag_name_list = response.css('div.smallreadbody a::text').getall()
+        tag_href_list = response.css('div.smallreadbody a::attr(href)').getall()
+        tag_dict = {
+            tag_name_list[i]: tag_href_list[i] for i in range(len(tag_name_list))
+        }
+        tag_remove_list = []
+        for i in tag_dict.keys():
+            if '?bq=' not in tag_dict[i] or len(i) > 4:
+                tag_remove_list.append(i)
+        for i in tag_remove_list:
+            tag_dict.pop(i)
+        data['tags'] = [i.strip() for i in tag_dict.keys() if len(i.strip()) > 0]
         data['cover'] = response.css('img.noveldefaultimage::attr(src)').get()
-        data['bid'] = 'jj' + data['book_url'].split('=')[-1]
-        data['aid'] = 'jj' + data['author_url'].split('=')[-1]
-
+        data['searchKeyword'] = response.css('div.smallreadbody span.bluetext::text').get()
         yield data
 
 
