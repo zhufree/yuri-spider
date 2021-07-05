@@ -97,20 +97,55 @@ class HaitangSpider(scrapy.Spider):
 class CpSpider(scrapy.Spider):
     name = 'cp'
     allowed_domains = ['gongzicp.com']
-    start_urls = ['https://www.gongzicp.com/novel/getNovelList?page=1&type_id=17&field=novel_allpopu&order=desc']
+    start_urls = ['https://webapi.gongzicp.com/novel/novelGetList?page=44&tid=17']
+    handle_httpstatus_list = [404]  # 处理404页面，否则将会跳过
     
     def __init__(self):
-        self.page_count = 1
-        self.base_url = 'https://www.gongzicp.com/novel/getNovelList?type_id=17&field=novel_allpopu&order=desc'
+        self.page_count = 44
+        self.base_url = 'https://webapi.gongzicp.com/novel/novelGetList?page={}&tid=17'
 
     def parse(self, response):
         res_json = response.json()
         novel_list = res_json['data']['list']
-        for i in novel_list:
-            yield i
+        for j in novel_list:
+            current_novel = {
+                'title': j['novel_name'],
+                'bid': 'cp' + str(j['novel_id']),
+                'book_url': 'https://www.gongzicp.com/novel-{}.html'.format(j['novel_id']),
+                'aid': 'cp' + str(j['author_id']),
+                'author': j['novel_author'],
+                'authot_url': 'https://www.gongzicp.com/zone/author-{}.html'.format(j['author_id']),
+                'style': '',
+                'type': j['type_name'],
+                'publish_time': j['novel_uptime'],
+                'status': j['novel_process_text'],
+                'cover': j['novel_cover'],
+                'wordcount': j['novel_wordnumber'].replace(',', ''),
+                'tags': j['novel_tags'],
+                'searchKeyword': j['novel_desc']
+            }
+            book_api = 'https://webapi.gongzicp.com/novel/novelGetInfo?id={}'.format(j['novel_id'])
+            yield scrapy.Request(book_api, self.parse_novel_page, 
+                cb_kwargs=dict(data=current_novel))
             
         if len(novel_list) == 10:
             self.page_count += 1
-            next_page = self.base_url + '&page={}'.format(self.page_count)
+            next_page = self.base_url.format(self.page_count)
             yield scrapy.Request(next_page, callback=self.parse)
+
+    def parse_novel_page(self, response, data):
+        if response.status == 404:
+            data['collectionCount'] = -1
+            yield data
+        else:
+            res_json = response.json()
+            novel_info = res_json['data']['novelInfo']
+            if type(novel_info) == list:
+                data['collectionCount'] = -1
+                yield data
+            else:
+                data['type'] = novel_info['type_names']
+                data['collectionCount'] = novel_info['novel_allcoll']
+                data['publish_time']: novel_info['create_time']
+                yield data
             

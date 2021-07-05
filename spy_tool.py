@@ -9,7 +9,7 @@ platform_dict = {
     'haitang': 3
 }
 
-platform = 'jjwxc'
+platform = 'changpei'
 db_path = 'E:/yuri-backend/.tmp/data.db'
 
 # 数据清洗，去重
