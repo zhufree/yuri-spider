@@ -97,11 +97,11 @@ class HaitangSpider(scrapy.Spider):
 class CpSpider(scrapy.Spider):
     name = 'cp'
     allowed_domains = ['gongzicp.com']
-    start_urls = ['https://webapi.gongzicp.com/novel/novelGetList?page=44&tid=17']
+    start_urls = ['https://webapi.gongzicp.com/novel/novelGetList?page=1&tid=17']
     handle_httpstatus_list = [404]  # 处理404页面，否则将会跳过
     
     def __init__(self):
-        self.page_count = 44
+        self.page_count = 1
         self.base_url = 'https://webapi.gongzicp.com/novel/novelGetList?page={}&tid=17'
 
     def parse(self, response):

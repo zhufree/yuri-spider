@@ -211,8 +211,8 @@ def add_platform():
     connect.close()
 if __name__ == '__main__':
     # clear_data()
-    # save_author()
-    # save_tags()
-    # save_books()
+    save_author()
+    save_tags()
+    save_books()
     add_tags()
     # add_platform()
