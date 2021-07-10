@@ -6,7 +6,7 @@ import sqlite3
 platform_dict = {
     'jjwxc': 1,
     'changpei': 2,
-    'haitang': 3
+    # 'haitang': 3
 }
 
 platform = 'changpei'
@@ -181,7 +181,7 @@ def add_tags():
         if book_id in book_tag_dict.keys():
             book_tag_dict[book_id].append(tag_id)
         else:
-            book_tag_dict[book_id] = []
+            book_tag_dict[book_id] = [tag_id]
     with open("{}-items.json".format(platform), 'r', encoding='utf-8') as f:
         lines = f.readlines()
         connect = sqlite3.connect(db_path)
@@ -211,8 +211,8 @@ def add_platform():
     connect.close()
 if __name__ == '__main__':
     # clear_data()
-    save_author()
-    save_tags()
-    save_books()
+    # save_author()
+    # save_tags()
+    # save_books()
     add_tags()
     # add_platform()

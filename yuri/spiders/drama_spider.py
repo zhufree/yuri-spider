@@ -38,23 +38,75 @@ class FanjiaoSpider(scrapy.Spider):
 
     def parse(self, response):
         res_json = response.json()
-        for item in res_json['data']['list']:
-            yield item
+        for i in res_json['data']['list']:
+            drama = {
+                'name': i['name'],
+                'adid': i['album_id'],
+                'intro': i['description'],
+                'cover': i['cover'],
+                'up': i['up_name'],
+                'playCount': i['play'],
+                'status': '已完结' if i['album_id'] < 100000 else '未知'
+            }
+            yield drama
 
 class MaoerSpider(scrapy.Spider):
     name = 'maoer'
     start_urls = ['https://www.missevan.com/dramaapi/filter?filters=0_5_0_0_0&page=1&order=1&page_size=50']
     page_count = 1
     base_url = 'https://www.missevan.com/dramaapi/filter?filters=0_5_0_0_0&page={}&order=1&page_size=50'
+    handle_httpstatus_list = [418]
+
+    def get_status(self, integrity):
+        if integrity == 1:
+            return '更新至'
+        else:
+            return '已完结'
 
     def parse(self, response):
         res_json = response.json()
         has_more = res_json['info']['pagination']['has_more']
-        for item in res_json['info']['Datas']:
-            yield item
+        for i in res_json['info']['Datas']:
+            drama = {
+                'name': i['name'],
+                'adid': i['id'],
+                'cover': i['cover'],
+                'status': self.get_status(i['integrity']) + '|' + i['newest'],
+            }
+            yield scrapy.Request('https://www.missevan.com/dramaapi/getdrama?drama_id={}'.format(i['id']), self.get_drama, 
+                cb_kwargs=dict(data=drama))
+            # yield item
 
         if has_more:
             self.page_count = self.page_count + 1
             next_page = self.base_url.format(self.page_count)
             yield scrapy.Request(next_page, callback=self.parse)
+
+    def get_drama(self, response, data):
+        if response.status == 418:
+            yield response.url
+        else:
+            res_json = response.json()
+            data['intro'] = res_json['info']['drama']['abstract']
+            data['playCount'] = res_json['info']['drama']['view_count']
+            eps = res_json['info']['episodes']['episode']
+            # no up data, open a sound to get up info
+            if len(eps) > 0:
+                sound_id = eps[0]['sound_id']
+                yield scrapy.Request('https://www.missevan.com/sound/getsound?soundid={}'.format(sound_id), self.get_sound, 
+                        cb_kwargs=dict(data=data))
+            else:
+                yield data
+
+
+    def get_sound(self, response, data):
+        if response.status == 418:
+            yield response.url
+        else:
+            res_json = response.json()
+            if 'user' in res_json['info'].keys():
+                username = res_json['info']['user']['username']
+                data['up'] = username
+            yield data
+
 
