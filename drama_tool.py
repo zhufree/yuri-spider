@@ -9,7 +9,7 @@ platform_dict = {
     'manbo': 5,
 }
 
-platform = 'fanjiao'
+platform = 'maoer'
 db_path = 'E:/yuri-backend/.tmp/data.db'
 
 # 数据清洗，去重，以最新的为准
@@ -70,11 +70,11 @@ def get_drama_and_id():
     drama_dict = {}
     connect = sqlite3.connect(db_path)
     cursor = connect.cursor()
-    rows = cursor.execute("SELECT id, adid, name from audio_dramas")
+    rows = cursor.execute("SELECT id, name from audio_dramas")
     for r in rows:
         # bid = r[1]
         # drama_dict[bid] = r[0]
-        drama_dict[r[2]] = r[0]  # name: id
+        drama_dict[r[1]] = r[0]  # name: id
     return drama_dict
 
 
@@ -153,6 +153,6 @@ def add_platforms():
 
 if __name__ == '__main__':
     # clear_data()
-    # save_ups()
-    # save_dramas()
+    save_ups()
+    save_dramas()
     add_platforms()

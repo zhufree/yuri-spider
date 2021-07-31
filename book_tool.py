@@ -9,7 +9,7 @@ platform_dict = {
     # 'haitang': 3
 }
 
-platform = 'changpei'
+platform = 'jjwxc'
 db_path = 'E:/yuri-backend/.tmp/data.db'
 
 # 数据清洗，去重
@@ -139,6 +139,7 @@ def save_books():
             sql = ''
             try:
                 if l['bid'] in old_book_id_dict.keys():
+                    # collectionCount 负数不录入
                     update_data = "title = '{}', bid = '{}', url = '{}', cover = '{}', \
                     style = '{}', type = '{}', status = '{}', publishTime = '{}', wordcount = {}, \
                     collectionCount = {}, searchKeyword = '{}', author = {}, platform = {}".format(

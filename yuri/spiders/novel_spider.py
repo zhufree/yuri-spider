@@ -7,7 +7,8 @@ class YuriSpider(scrapy.Spider):
     # 804页
 
     start_urls = [
-        'http://www.jjwxc.net/bookbase.php?xx3=3',
+        # 'http://www.jjwxc.net/bookbase.php?xx3=3',
+        'https://www.jjwxc.net/bookbase.php?xx3=3&sortType=3' # 按发表时间
     ]
 
     def parse(self, response):
