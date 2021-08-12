@@ -1,8 +1,10 @@
 # yuri-spider
-Some yuri spider for novel .etc
+Some yuri spider for novel and audio drama.etc, use scrapy
 
-## 晋江（scrapy）
+## 晋江
 
 ## 长佩
 
-## 海棠
+## 饭角
+
+## 猫耳

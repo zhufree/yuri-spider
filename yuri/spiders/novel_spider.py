@@ -1,15 +1,17 @@
 import scrapy
-
+from pyunit_time import Time
+import time
 
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
     # name = "jjwxc-list"
-    # 804页
+    # last update at 8.12
 
     start_urls = [
         # 'http://www.jjwxc.net/bookbase.php?xx3=3',
         'https://www.jjwxc.net/bookbase.php?xx3=3&sortType=3' # 按发表时间
     ]
+    page_count = 0
 
     def parse(self, response):
         current_page_list = []
@@ -25,6 +27,12 @@ class YuriSpider(scrapy.Spider):
                 'wordcount': tr.css('td:nth-child(6)::text').get().strip(),
                 'publish_time': tr.css('td:nth-child(8)::text').get().strip(),
             }
+            if '完' in current_novel['status']:
+                current_novel['status'] = '完结'
+            elif current_novel['status'] == '暂停':
+                current_novel['status'] = '断更'
+            elif current_novel['status'] == '连载中':
+                current_novel['status'] = '连载'
             current_novel['bid'] = 'jj' + current_novel['book_url'].split('=')[-1]
             current_novel['aid'] = 'jj' + current_novel['author_url'].split('=')[-1]
             current_page_list.append(current_novel)
@@ -35,8 +43,9 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 90:
+        if len(current_page_list) >= 60 and self.page_count < 15:
             next_page = response.urljoin(next_page)
+            self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
 
     def parse_novel_page(self, response, data):
@@ -96,14 +105,16 @@ class HaitangSpider(scrapy.Spider):
 
 
 class CpSpider(scrapy.Spider):
-    name = 'cp'
+    name = 'changpei'
     allowed_domains = ['gongzicp.com']
-    start_urls = ['https://webapi.gongzicp.com/novel/novelGetList?page=1&tid=17']
+    start_urls = ['https://webapi.gongzicp.com/novel/novelGetList?page=1&tid=17&order=-1&field=4'] # 创建时间，最新
     handle_httpstatus_list = [404]  # 处理404页面，否则将会跳过
     
     def __init__(self):
-        self.page_count = 1
+        self.page_count = 41
         self.base_url = 'https://webapi.gongzicp.com/novel/novelGetList?page={}&tid=17'
+        self.current_year = str(time.localtime().tm_year)
+        self.current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     def parse(self, response):
         res_json = response.json()
@@ -115,7 +126,7 @@ class CpSpider(scrapy.Spider):
                 'book_url': 'https://www.gongzicp.com/novel-{}.html'.format(j['novel_id']),
                 'aid': 'cp' + str(j['author_id']),
                 'author': j['novel_author'],
-                'authot_url': 'https://www.gongzicp.com/zone/author-{}.html'.format(j['author_id']),
+                'author_url': 'https://www.gongzicp.com/zone/author-{}.html'.format(j['author_id']),
                 'style': '',
                 'type': j['type_name'],
                 'publish_time': j['novel_uptime'],
@@ -125,13 +136,21 @@ class CpSpider(scrapy.Spider):
                 'tags': j['novel_tags'],
                 'searchKeyword': j['novel_desc']
             }
+            if not '-' in current_novel['publish_time']:
+                parse_result = Time(self.current_time).parse(current_novel['publish_time'])
+                if len(parse_result) > 0:
+                    current_novel['publish_time'] = parse_result[0]['keyDate']
+            if len(current_novel['publish_time']) < 6:
+                current_novel['publish_time'] = self.current_year + '-' + current_novel['publish_time']
             book_api = 'https://webapi.gongzicp.com/novel/novelGetInfo?id={}'.format(j['novel_id'])
+            time.sleep(0.5)
             yield scrapy.Request(book_api, self.parse_novel_page, 
                 cb_kwargs=dict(data=current_novel))
             
-        if len(novel_list) == 10:
+        if len(novel_list) == 10 and self.page_count < 51:
             self.page_count += 1
             next_page = self.base_url.format(self.page_count)
+            time.sleep(0.5)
             yield scrapy.Request(next_page, callback=self.parse)
 
     def parse_novel_page(self, response, data):

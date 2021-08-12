@@ -9,8 +9,8 @@ platform_dict = {
     # 'haitang': 3
 }
 
-platform = 'jjwxc'
-db_path = 'E:/yuri-backend/.tmp/data.db'
+platform = 'changpei'
+db_path = '../yuri-backend/.tmp/data.db'
 
 # 数据清洗，去重
 def clear_data():
@@ -212,8 +212,8 @@ def add_platform():
     connect.close()
 if __name__ == '__main__':
     # clear_data()
-    # save_author()
-    # save_tags()
-    # save_books()
+    save_author()
+    save_tags()
+    save_books()
     add_tags()
     # add_platform()
