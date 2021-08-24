@@ -203,17 +203,9 @@ def add_tags():
         connect.close()
 
 
-def add_platform():
-    connect = sqlite3.connect(db_path)
-    cursor = connect.cursor()
-    cursor.execute("INSERT INTO platforms (name) \
-                    VALUES ('{}')".format('晋江文学城'))
-    connect.commit()
-    connect.close()
 if __name__ == '__main__':
     # clear_data()
     save_author()
     save_tags()
     save_books()
     add_tags()
-    # add_platform()

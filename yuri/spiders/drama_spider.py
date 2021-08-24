@@ -1,5 +1,7 @@
 import scrapy
+import time
 
+# 长期有效
 sign_dict = {
     '1': '64deb9d3e26d320f92460e0b357569b2',
     '2': 'f898dcf5804704ca9516dba1a3f80ad4',
@@ -52,9 +54,13 @@ class FanjiaoSpider(scrapy.Spider):
 
 class MaoerSpider(scrapy.Spider):
     name = 'maoer'
-    start_urls = ['https://www.missevan.com/dramaapi/filter?filters=0_5_0_0_0&page=1&order=1&page_size=50']
+    # 0_5_1_0_0 长篇未完结
+    # 0_5_2_0_0 长篇完结 8.24
+    # 0_5_3_0_0 全一期
+    # 0_5_4_0_0 微小剧
+    start_urls = ['https://www.missevan.com/dramaapi/filter?filters=0_5_2_0_0&page=1&order=1&page_size=50']
     page_count = 1
-    base_url = 'https://www.missevan.com/dramaapi/filter?filters=0_5_0_0_0&page={}&order=1&page_size=50'
+    base_url = 'https://www.missevan.com/dramaapi/filter?filters=0_5_2_0_0&page={}&order=1&page_size=50'
     handle_httpstatus_list = [418]
 
     def get_status(self, integrity):
@@ -84,7 +90,7 @@ class MaoerSpider(scrapy.Spider):
 
     def get_drama(self, response, data):
         if response.status == 418:
-            yield response.url
+            print(response.url)
         else:
             res_json = response.json()
             data['intro'] = res_json['info']['drama']['abstract']
@@ -101,7 +107,7 @@ class MaoerSpider(scrapy.Spider):
 
     def get_sound(self, response, data):
         if response.status == 418:
-            yield response.url
+            print(response.url)
         else:
             res_json = response.json()
             if 'user' in res_json['info'].keys():

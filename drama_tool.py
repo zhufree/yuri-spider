@@ -9,8 +9,8 @@ platform_dict = {
     'manbo': 5,
 }
 
-platform = 'maoer'
-db_path = 'E:/yuri-backend/.tmp/data.db'
+platform = 'fanjiao'
+db_path = '../yuri-backend/.tmp/data.db'
 
 # 数据清洗，去重，以最新的为准
 def clear_data():
@@ -152,7 +152,7 @@ def add_platforms():
 
 
 if __name__ == '__main__':
-    # clear_data()
+    clear_data()
     save_ups()
     save_dramas()
     add_platforms()

@@ -2,10 +2,11 @@ import scrapy
 from pyunit_time import Time
 import time
 
+
+# last update at 8.24
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
     # name = "jjwxc-list"
-    # last update at 8.12
 
     start_urls = [
         # 'http://www.jjwxc.net/bookbase.php?xx3=3',
@@ -43,7 +44,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 15:
+        if len(current_page_list) >= 60 and self.page_count < 18:
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
@@ -111,8 +112,8 @@ class CpSpider(scrapy.Spider):
     handle_httpstatus_list = [404]  # 处理404页面，否则将会跳过
     
     def __init__(self):
-        self.page_count = 41
-        self.base_url = 'https://webapi.gongzicp.com/novel/novelGetList?page={}&tid=17'
+        self.page_count = 1
+        self.base_url = 'https://webapi.gongzicp.com/novel/novelGetList?page={}&tid=17&order=-1&field=4'
         self.current_year = str(time.localtime().tm_year)
         self.current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
@@ -147,7 +148,7 @@ class CpSpider(scrapy.Spider):
             yield scrapy.Request(book_api, self.parse_novel_page, 
                 cb_kwargs=dict(data=current_novel))
             
-        if len(novel_list) == 10 and self.page_count < 51:
+        if len(novel_list) == 10 and self.page_count < 25:
             self.page_count += 1
             next_page = self.base_url.format(self.page_count)
             time.sleep(0.5)
