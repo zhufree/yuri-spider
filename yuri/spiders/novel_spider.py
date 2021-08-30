@@ -44,7 +44,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 18:
+        if len(current_page_list) >= 60 and self.page_count < 10:
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
@@ -148,7 +148,7 @@ class CpSpider(scrapy.Spider):
             yield scrapy.Request(book_api, self.parse_novel_page, 
                 cb_kwargs=dict(data=current_novel))
             
-        if len(novel_list) == 10 and self.page_count < 25:
+        if len(novel_list) == 10 and self.page_count < 10:
             self.page_count += 1
             next_page = self.base_url.format(self.page_count)
             time.sleep(0.5)
