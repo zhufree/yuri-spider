@@ -56,11 +56,11 @@ class MaoerSpider(scrapy.Spider):
     name = 'maoer'
     # 0_5_1_0_0 长篇未完结
     # 0_5_2_0_0 长篇完结 8.24
-    # 0_5_3_0_0 全一期
+    # 0_5_3_0_0 全一期 8.31
     # 0_5_4_0_0 微小剧
-    start_urls = ['https://www.missevan.com/dramaapi/filter?filters=0_5_2_0_0&page=1&order=1&page_size=50']
+    start_urls = ['https://www.missevan.com/dramaapi/filter?filters=0_5_3_0_0&page=1&order=1&page_size=50']
     page_count = 1
-    base_url = 'https://www.missevan.com/dramaapi/filter?filters=0_5_2_0_0&page={}&order=1&page_size=50'
+    base_url = 'https://www.missevan.com/dramaapi/filter?filters=0_5_3_0_0&page={}&order=1&page_size=50'
     handle_httpstatus_list = [418]
 
     def get_status(self, integrity):

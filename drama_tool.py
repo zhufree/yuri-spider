@@ -9,7 +9,7 @@ platform_dict = {
     'manbo': 5,
 }
 
-platform = 'fanjiao'
+platform = 'maoer'
 db_path = '../yuri-backend/.tmp/data.db'
 
 # 数据清洗，去重，以最新的为准
