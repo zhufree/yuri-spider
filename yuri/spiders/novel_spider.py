@@ -3,7 +3,7 @@ from pyunit_time import Time
 import time
 
 
-# last update at 8.24
+# last update at 8.30
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
     # name = "jjwxc-list"

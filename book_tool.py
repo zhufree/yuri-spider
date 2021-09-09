@@ -9,11 +9,10 @@ platform_dict = {
     # 'haitang': 3
 }
 
-platform = 'changpei'
 db_path = '../yuri-backend/.tmp/data.db'
 
 # 数据清洗，去重
-def clear_data():
+def clear_data(platform):
     result_list = []
     bid_list = []
     with open("{}-items.json".format(platform), 'r', encoding='utf-8') as f:
@@ -31,7 +30,7 @@ def clear_data():
 
 
 # 先录入作者，tag，再录入book，匹配作者和tag id
-def save_author():
+def save_author(platform):
     print('更新作者：')
     author_dict = {}
     with open("{}-items.json".format(platform), 'r', encoding='utf-8') as f:
@@ -63,7 +62,7 @@ def save_author():
     connect.close()
 
 
-def save_tags():
+def save_tags(platform):
     print('更新tag')
     tag_list = []
     old_tag_list = get_tag_and_id()
@@ -120,7 +119,7 @@ def get_book_and_id():
         book_dict[bid] = _id
     return book_dict
 
-def save_books():
+def save_books(platform):
     print('更新novel')
     author_id_dict = get_author_and_id()
     tag_id_dict = get_tag_and_id()
@@ -168,7 +167,7 @@ def save_books():
         connect.close()
 
 
-def add_tags():
+def add_tags(platform):
     print('添加novel和tag关联')
     tag_id_dict = get_tag_and_id() # dict from db
     book_id_dict = get_book_and_id()
@@ -205,7 +204,9 @@ def add_tags():
 
 if __name__ == '__main__':
     # clear_data()
-    save_author()
-    save_tags()
-    save_books()
-    add_tags()
+    platforms = ['jjwxc', 'changpei']
+    for p in platforms:
+        save_author(p)
+        save_tags(p)
+        save_books(p)
+        add_tags(p)
