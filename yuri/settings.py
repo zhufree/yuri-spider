@@ -38,10 +38,10 @@ COOKIES_DEBUG = True
 
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
-  'Cookie': r'__yjs_duid=1_17289de631657a83977432394b9a4cea1627869743958; UM_distinctid=17b04991832f8-0f6c3ff5c3316f-2343360-1fa400-17b049918336cc; smidV2=202103031715064a979117c753de178df22b237e6c183f00d561dfa9c942740; token=MTMzOTQwNjN8NGI1NjA3NWM2YTE5YmE3ZDFjYTU4NmRjMWNkZjkxZjR8fDk2MyoqKioqKkBxcS5jb218fDI1OTIwMDB8MXx8fOaZi%2Baxn%2BeUqOaIt3wxfG1vYmlsZXwx; testcookie=yes; JJSESS=%7B%22clicktype%22%3A%22%22%7D; Hm_lvt_bc3b748c21fe5cf393d26c12b2c38d99=1627869748,1627973195; CNZZDATA30075907=cnzz_eid%3D861612041-1585376416-null%26ntime%3D1627970166; JJEVER=%7B%22fenzhan%22%3A%22dm%22%2C%22nicknameAndsign%22%3A%222%257E%2529%2524%25E5%258C%2597%25E6%2588%258A%22%2C%22sms_total%22%3A2%2C%22desid%22%3A%22jHqJ50QcjZPGvfKzh0D5LR3hCX5q2vKu%22%2C%22user_signin_days%22%3A%2220210803_13394063_0%22%2C%22foreverreader%22%3A%2213394063%22%2C%22background%22%3A%22%22%2C%22font_size%22%3A%22%22%2C%22isKindle%22%3A%22%22%2C%22lastCheckLoginTimePc%22%3A1627974094%7D; Hm_lpvt_bc3b748c21fe5cf393d26c12b2c38d99=1627974103; arp_scroll_position=4186',
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
+  'Cookie': '__yjs_duid=1_0d77b5fcf367ab0fc8bc5480456519121622557201139; token=MTMzOTQwNjN8MzEyNDNhOTBmMTE5MzE2ODliM2M1ODBhNzY5MDZhMmF8fDk2MyoqKioqKkBxcS5jb218fDI1OTIwMDB8MXx8fOaZi%2Baxn%2BeUqOaIt3wxfG1vYmlsZXwx',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
-DEFAULT_REQUEST_HEADERS = {}
+# DEFAULT_REQUEST_HEADERS = {}
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
