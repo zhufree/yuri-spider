@@ -4,8 +4,8 @@ import sqlite3
 
 
 platform_dict = {
-    # 'jjwxc': 1,
-    # 'changpei': 2,
+    'jjwxc': 1,
+    'changpei': 2,
     'haitang': 7
 }
 
@@ -212,7 +212,7 @@ def add_tags(platform):
 if __name__ == '__main__':
     # clear_data()
     platforms = [
-    # 'jjwxc', 'changpei',
+    'jjwxc', 'changpei',
     'haitang'
     ]
     for p in platforms:
