@@ -6,7 +6,7 @@ import sqlite3
 platform_dict = {
     # 'jjwxc': 1,
     # 'changpei': 2,
-    'haitang': 3
+    'haitang': 7
 }
 
 db_path = '../yuri-backend/.tmp/data.db'
