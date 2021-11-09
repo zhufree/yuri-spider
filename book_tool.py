@@ -4,9 +4,9 @@ import sqlite3
 
 
 platform_dict = {
-    'jjwxc': 1,
-    'changpei': 2,
-    # 'haitang': 3
+    # 'jjwxc': 1,
+    # 'changpei': 2,
+    'haitang': 3
 }
 
 db_path = '../yuri-backend/.tmp/data.db'
@@ -130,6 +130,13 @@ def save_books(platform):
         cursor = connect.cursor()
         for line in lines:
             l = json.loads(line)
+            if '完' in l['status']:
+                l['status'] = '完结'
+            elif '中' in l['status']:
+                l['status'] = '连载'
+            elif l['status'] == '暂停':
+                l['status'] = '断更'
+
             if l['aid'] in author_id_dict.keys():
                 author_id = author_id_dict[l['aid']]
             else:
@@ -204,7 +211,10 @@ def add_tags(platform):
 
 if __name__ == '__main__':
     # clear_data()
-    platforms = ['jjwxc', 'changpei']
+    platforms = [
+    # 'jjwxc', 'changpei',
+    'haitang'
+    ]
     for p in platforms:
         save_author(p)
         save_tags(p)

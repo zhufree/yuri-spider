@@ -1,9 +1,9 @@
 import scrapy
 from pyunit_time import Time
 import time
+import re
 
-
-# last update at 8.30
+# last update at 10.19
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
     # name = "jjwxc-list"
@@ -83,26 +83,52 @@ class HaitangSpider(scrapy.Spider):
     def parse(self, response):
         tds = response.css('table.uk-table tr>td')[1:]
         for td in tds:
+            href = td.css('a:first-child::attr(href)').get()
             item = {
                 'title': td.css('a:first-child>font>b::text').get(),
-                'url': 'https://www.newhtbook.com' + td.css('a:first-child::attr(href)').get(),
+                'book_url': 'https://www.newhtbook.com' + href,
+                'bid': re.search(r'bookid=(\d+)', href).group(1),
                 'author': td.css('a:nth-child(6)>font::text').get(),
                 'author_url': 'https://www.newhtbook.com' + td.css('a:nth-child(6)::attr(href)').get(),
                 'tags': [i.strip() for i in td.css('font:nth-child(4)::text').get().split('/')],
                 'status': td.css('font:nth-child(8)::text').get(),
                 'wordcount': td.css('font:nth-child(9)::text').get(),
+                'cover': 'https://s.pc.qq.com/tousu/img/20211109/6818272_1636439546.jpg',
+                'style': '',
+                'type': '',
+                'publish_time': '',
+                'searchKeyword': ''
             }
             item['tags'] = list(set(item['tags']))
             item['aid'] = item['author_url'].split('=')[-1]
-            item['bid'] = 'ht' + item['url'].split('&')[-2].replace('bookid=', '')
+            item['bid'] = 'ht' + item['book_url'].split('&')[-2].replace('bookid=', '')
+            
             if item['wordcount'] == None:
                 item['wordcount'] = 0
-            yield item
+            else:
+                w = re.search(r'約(\d+)萬字', item['wordcount'])
+                if w == None:
+                    item['wordcount'] = int(re.search(r'約(\d+)字', item['wordcount']).group(1))
+                else:
+                    item['wordcount'] = int(w.group(1)) * 10000
+            if item['wordcount'] == None:
+                item['wordcount'] = 0
 
-        if len(tds) == 50:
+            # yield item
+            yield scrapy.Request(item['book_url'], self.parse_detail, 
+                cb_kwargs=dict(data=item))
+
+        if len(tds) >= 50:
             self.page_count += 1
             next_page = self.base_url + '&searchkpage={}'.format(self.page_count)
             yield scrapy.Request(next_page, callback=self.parse)
+
+    def parse_detail(self, response, data):
+        collection_count_el = response.css('div.uk-card font:nth-child(8)::text').get()
+        if collection_count_el == None:
+            collection_count_el = response.css('div.uk-card font:nth-child(7)::text').get()
+        data['collectionCount'] = collection_count_el
+        yield data
 
 
 class CpSpider(scrapy.Spider):
