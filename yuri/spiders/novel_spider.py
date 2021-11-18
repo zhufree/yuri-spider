@@ -6,7 +6,6 @@ import re
 # last update at 10.19
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
-    # name = "jjwxc-list"
 
     start_urls = [
         # 'http://www.jjwxc.net/bookbase.php?xx3=3',
@@ -87,7 +86,7 @@ class HaitangSpider(scrapy.Spider):
             item = {
                 'title': td.css('a:first-child>font>b::text').get(),
                 'book_url': 'https://www.newhtbook.com' + href,
-                'bid': re.search(r'bookid=(\d+)', href).group(1),
+                'bid': 'ht' + re.search(r'bookid=(\d+)', href).group(1),
                 'author': td.css('a:nth-child(6)>font::text').get(),
                 'author_url': 'https://www.newhtbook.com' + td.css('a:nth-child(6)::attr(href)').get(),
                 'tags': [i.strip() for i in td.css('font:nth-child(4)::text').get().split('/')],
@@ -101,7 +100,6 @@ class HaitangSpider(scrapy.Spider):
             }
             item['tags'] = list(set(item['tags']))
             item['aid'] = item['author_url'].split('=')[-1]
-            item['bid'] = 'ht' + item['book_url'].split('&')[-2].replace('bookid=', '')
             
             if item['wordcount'] == None:
                 item['wordcount'] = 0
@@ -195,4 +193,48 @@ class CpSpider(scrapy.Spider):
                 data['collectionCount'] = novel_info['novel_allcoll']
                 data['publish_time']: novel_info['create_time']
                 yield data
-            
+
+
+class PoSpider(scrapy.Spider):
+    name = 'po'
+    allowed_domains = ['www.po18.tw']
+    start_urls = ['https://www.po18.tw/tags/subbooks?id=23_']
+
+    def __init__(self):
+        self.page_count = 1
+        self.base_url = 'https://www.po18.tw/tags/subbooks?id=23_'
+
+    def parse(self, response):
+        divs = response.css('#w0.list-view>div')
+        for div in divs:
+            href = div.css('.book_name>a::attr(href)').get()
+            item = {
+                'title': div.css('.book_name>a::text').get(),
+                'book_url': 'https://www.po18.tw' + href,
+                'bid': 'po' + re.search(r'books/(\d+)', href).group(1),
+                'author': div.css('.book_author>a::text').get(),
+                'author_url': 'https://www.po18.tw' + div.css('.book_author>a::attr(href)').get(),
+                'tags': [i.strip() for i in div.css('.book_tags>a.tag::text').getall()],
+                'cover': div.css('.book_cover img::attr(src)').get(),
+                'style': '',
+                'type': '',
+                'publish_time': '',
+                'searchKeyword': div.css('.intro::text').get()
+            }
+            item['tags'] = list(set(item['tags']))
+            item['aid'] = 'po' + item['author_url'].replace('https://www.po18.tw/users/', '')
+
+            # yield item
+            yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
+                cb_kwargs=dict(data=item))
+
+        if len(divs) >= 10:
+            self.page_count += 1
+            next_page = self.base_url + '&page={}'.format(self.page_count)
+            yield scrapy.Request(next_page, callback=self.parse)
+
+    def parse_detail(self, response, data):
+        data['status'] = response.css('dd.statu::text').get()
+        data['wordcount'] = response.css('table.book_data>tbody>tr:nth-child(3)>td::text').get()
+        data['collectionCount'] = response.css('table.book_data>tbody>tr:nth-child(1)>td::text').get()
+        yield data

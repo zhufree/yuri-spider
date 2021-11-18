@@ -38,7 +38,12 @@ COOKIES_DEBUG = True
 
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
-  'Cookie': '__yjs_duid=1_0d77b5fcf367ab0fc8bc5480456519121622557201139; token=MTMzOTQwNjN8MzEyNDNhOTBmMTE5MzE2ODliM2M1ODBhNzY5MDZhMmF8fDk2MyoqKioqKkBxcS5jb218fDI1OTIwMDB8MXx8fOaZi%2Baxn%2BeUqOaIt3wxfG1vYmlsZXwx',
+  # jjwxc
+  # 'Cookie': '__yjs_duid=1_0d77b5fcf367ab0fc8bc5480456519121622557201139; token=MTMzOTQwNjN8MzEyNDNhOTBmMTE5MzE2ODliM2M1ODBhNzY5MDZhMmF8fDk2MyoqKioqKkBxcS5jb218fDI1OTIwMDB8MXx8fOaZi%2Baxn%2BeUqOaIt3wxfG1vYmlsZXwx',
+  # po18
+  'Cookie': '_ga=GA1.2.350231410.1637158306; _gid=GA1.2.857688894.1637158306; _paabbcc=86i9jsglpe9ml96hbn5l5h5qe5; _po18rf-tk001=b5da8271633105df66db8c9fd9a29efa47bc292230ddf12490eab0a7c2ca2f27a%3A2%3A%7Bi%3A0%3Bs%3A13%3A%22_po18rf-tk001%22%3Bi%3A1%3Bs%3A32%3A%22sjyEOnElVBR636HkGuPKteLuetSMZc67%22%3B%7D; po18Limit=1; url=https%3A%2F%2Fwww.po18.tw; authtoken1=emh1ZnJlZQ%3D%3D; authtoken2=ZGYzOTUxYmM4NjM2ZTA2OTdhOTY5NDIwYmZhMWQ1ODQ%3D; authtoken3=1821092935; authtoken4=2668001588; authtoken5=1637238922; authtoken6=1',
+  # blank
+  'Cookie': '',
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 # DEFAULT_REQUEST_HEADERS = {}
