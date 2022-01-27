@@ -213,8 +213,8 @@ def add_tags(platform):
 if __name__ == '__main__':
     # clear_data()
     platforms = [
-    # 'jjwxc', 'changpei',
-    # 'haitang',
+    'jjwxc', 'changpei',
+    'haitang',
     'po'
     ]
     for p in platforms:

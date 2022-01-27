@@ -3,7 +3,7 @@ from pyunit_time import Time
 import time
 import re
 
-# last update at 10.19
+# last update at 1.27
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -43,7 +43,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 15:
+        if len(current_page_list) >= 60 and self.page_count < 70: # 根据时间修改page count
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
@@ -145,6 +145,7 @@ class CpSpider(scrapy.Spider):
         res_json = response.json()
         novel_list = res_json['data']['list']
         for j in novel_list:
+            print(j)
             current_novel = {
                 'title': j['novel_name'],
                 'bid': 'cp' + str(j['novel_id']),
@@ -157,7 +158,7 @@ class CpSpider(scrapy.Spider):
                 'publish_time': j['novel_uptime'],
                 'status': j['novel_process_text'],
                 'cover': j['novel_cover'],
-                'wordcount': j['novel_wordnumber'].replace(',', ''),
+                'wordcount': str(j['novel_wordnumber']).replace(',', ''),
                 'tags': j['novel_tags'],
                 'searchKeyword': j['novel_desc']
             }
