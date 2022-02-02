@@ -1,5 +1,4 @@
 import json
-import requests
 import sqlite3
 
 # 猫耳数据没抓全
