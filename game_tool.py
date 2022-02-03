@@ -36,17 +36,19 @@ def save_games():
             try:
                 if l['gId'] in old_game_id_dict.keys():
                     update_data = "intro = '{}', cover = '{}', status = '{}', collectionCount = {}, \
-                        up = {}".format(
+                        platform = {}".format(
                         l['intro'].replace("'", '|') if l['intro'] != None else '', 
                         l['cover'], l['status'], 
-                        int(l['collectionCount']) if l['collectionCount'] != None else -1)
+                        int(l['collectionCount']) if l['collectionCount'] != None else -1,
+                        platform_dict[platform])
                     sql = "UPDATE games SET {} WHERE name = '{}'".format(update_data, l['name'])
                     cursor.execute("UPDATE games SET {} WHERE name = '{}'".format(update_data, l['name']))
                 else:
                     cursor.execute('''INSERT INTO games (name, url, gId, cover, author, authorUrl, intro, \
-                        status, publishTime, collectionCount) VALUES (?,?,?,?,?,?,?,?,?,?)''',
+                        status, publishTime, collectionCount, game) VALUES (?,?,?,?,?,?,?,?,?,?)''',
                         (l['name'],l['url'], l['gId'], l['cover'], l['author'], l['authorUrl'],
-                        l['intro'], l['status'], l['publishTime'], l['collectionCount']))
+                        l['intro'], l['status'], l['publishTime'], l['collectionCount'],
+                        platform_dict[platform]))
             except Exception as e:
                 print(sql)
                 raise e
