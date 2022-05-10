@@ -237,5 +237,5 @@ class PoSpider(scrapy.Spider):
     def parse_detail(self, response, data):
         data['status'] = response.css('dd.statu::text').get()
         data['wordcount'] = response.css('table.book_data>tbody>tr:nth-child(3)>td::text').get()
-        data['collectionCount'] = response.css('table.book_data>tbody>tr:nth-child(1)>td::text').get()
+        data['collectionCount'] = response.css('table.book_data:nth-child(2)>tbody>tr:nth-child(1)>td::text').get()
         yield data
