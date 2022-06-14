@@ -3,7 +3,7 @@ from pyunit_time import Time
 import time
 import re
 
-# last update at 5.2
+# last update at 6.4, 添加desc字段
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -43,13 +43,19 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 45: # 根据时间修改page count
+        if len(current_page_list) >= 60 and self.page_count < 30: # 根据时间修改page count
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
 
     def parse_novel_page(self, response, data):
-        data['collectionCount'] = response.css('span[itemprop="collectedCount"]::text').get()
+        collection_count = response.css('span[itemprop="collectedCount"]::text').get()
+        if collection_count != None:
+            data['collectionCount'] = collection_count
+        else:
+            data['collectionCount'] = '0'
+        desc = response.css('div[itemprop="description"]::text').get()
+        data['description'] = desc if desc != None else ''
         # remove useless tag
         tag_name_list = response.css('div.smallreadbody a::text').getall()
         tag_href_list = response.css('div.smallreadbody a::attr(href)').getall()
@@ -63,11 +69,13 @@ class YuriSpider(scrapy.Spider):
         for i in tag_remove_list:
             tag_dict.pop(i)
         data['tags'] = [i.strip() for i in tag_dict.keys() if len(i.strip()) > 0]
-        data['cover'] = response.css('img.noveldefaultimage::attr(src)').get()
-        data['searchKeyword'] = response.css('div.smallreadbody span.bluetext::text').get()
+        cover = response.css('img.noveldefaultimage::attr(src)').get()
+        data['cover'] = cover if cover != None else ''
+        keyword = response.css('div.smallreadbody span.bluetext::text').get()
+        data['searchKeyword'] = keyword if keyword != None else ''
         yield data
 
-
+# last update at 5.2
 class HaitangSpider(scrapy.Spider):
     name = 'haitang'
     allowed_domains = ['www.newhtbook.com']
@@ -128,7 +136,7 @@ class HaitangSpider(scrapy.Spider):
         data['collectionCount'] = collection_count_el
         yield data
 
-
+# last update at 5.2
 class CpSpider(scrapy.Spider):
     name = 'changpei'
     allowed_domains = ['gongzicp.com']
@@ -195,7 +203,7 @@ class CpSpider(scrapy.Spider):
                 data['publish_time']: novel_info['create_time']
                 yield data
 
-
+# last update at 5.2
 class PoSpider(scrapy.Spider):
     name = 'po'
     allowed_domains = ['www.po18.tw']

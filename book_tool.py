@@ -146,24 +146,24 @@ def save_books(platform):
             try:
                 if l['bid'] in old_book_id_dict.keys():
                     # collectionCount 负数不录入
-                    update_data = "title = '{}', bid = '{}', url = '{}', cover = '{}', \
+                    update_data = "title = '{}', bid = '{}', url = '{}', cover = '{}', description = '{}', \
                     style = '{}', type = '{}', status = '{}', publishTime = '{}', wordcount = {}, \
                     collectionCount = {}, searchKeyword = '{}', author = {}, platform = {}".format(
-                        l['title'].replace("'", '|'), l['bid'], l['book_url'], l['cover'], l['style'], l['type'], l['status'],
-                        l['publish_time'], 
+                        l['title'].replace("'", '|'), l['bid'], l['book_url'], l['cover'], l['description'].replace("'", '|'), \
+                        l['style'], l['type'], l['status'], l['publish_time'], 
                         int(l['wordcount']) if l['wordcount'] != None else -1, 
-                        int(l['collectionCount']) if l['collectionCount'] != None else -1, 
+                        int(l['collectionCount']), 
                         l['searchKeyword'].replace("'", '|') if l['searchKeyword'] != None else '',
                         author_id, platform_dict[platform])
                     sql = "UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid'])
                     cursor.execute("UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid']))
                 else:
-                    cursor.execute('''INSERT INTO books (title, bid, url, cover, style, type, status, publishTime, \
-                        wordcount, collectionCount, searchKeyword, author, platform) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)''',
-                        (l['title'], l['bid'], l['book_url'], l['cover'], l['style'], l['type'], l['status'],
+                    cursor.execute('''INSERT INTO books (title, bid, url, cover, description, style, type, status, publishTime, \
+                        wordcount, collectionCount, searchKeyword, author, platform) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+                        (l['title'].replace("'", '|'), l['bid'], l['book_url'], l['cover'], l['description'].replace("'", '|'), l['style'], l['type'], l['status'],
                         l['publish_time'],
                         int(l['wordcount']) if l['wordcount'] != None else -1, 
-                        int(l['collectionCount']) if l['collectionCount'] != None else -1,
+                        int(l['collectionCount']),
                         l['searchKeyword'],
                         author_id, platform_dict[platform]))
             except Exception as e:
