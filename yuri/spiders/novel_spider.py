@@ -156,7 +156,7 @@ class HaitangSpider(scrapy.Spider):
             data['publish_time'] = time_search.group(1)
         yield data
 
-# last update at 5.2
+# last update at 6.15 默认只抓前100条
 class CpSpider(scrapy.Spider):
     name = 'changpei'
     allowed_domains = ['gongzicp.com']
@@ -188,7 +188,8 @@ class CpSpider(scrapy.Spider):
                 'cover': j['novel_cover'],
                 'wordcount': str(j['novel_wordnumber']).replace(',', ''),
                 'tags': j['novel_tags'],
-                'searchKeyword': j['novel_desc']
+                'searchKeyword': j['novel_desc'],
+                'description': ''
             }
             if not '-' in current_novel['publish_time']:
                 parse_result = Time(self.current_time).parse(current_novel['publish_time'])
@@ -201,7 +202,7 @@ class CpSpider(scrapy.Spider):
             yield scrapy.Request(book_api, self.parse_novel_page, 
                 cb_kwargs=dict(data=current_novel))
             
-        if len(novel_list) == 10 and self.page_count < 10:
+        if len(novel_list) == 10 and self.page_count < 10: # 前100条
             self.page_count += 1
             next_page = self.base_url.format(self.page_count)
             time.sleep(0.5)
@@ -221,13 +222,14 @@ class CpSpider(scrapy.Spider):
                 data['type'] = novel_info['type_names']
                 data['collectionCount'] = novel_info['novel_allcoll']
                 data['publish_time']= novel_info['create_time']
+                data['description'] = novel_info['novel_info']
                 yield data
 
 # last update at 5.2
 class PoSpider(scrapy.Spider):
     name = 'po'
     allowed_domains = ['www.po18.tw']
-    start_urls = ['https://www.po18.tw/tags/subbooks?id=23_']
+    start_urls = ['https://www.po18.tw/tags/subbooks?id=23_'] #按最新章回的更新时间排序的
 
     def __init__(self):
         self.page_count = 1
@@ -248,12 +250,12 @@ class PoSpider(scrapy.Spider):
                 'style': '',
                 'type': '',
                 'publish_time': '',
+                'description': '',
                 'searchKeyword': div.css('.intro::text').get()
             }
             item['tags'] = list(set(item['tags']))
             item['aid'] = 'po' + item['author_url'].replace('https://www.po18.tw/users/', '')
 
-            # yield item
             yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=item))
 
@@ -263,7 +265,17 @@ class PoSpider(scrapy.Spider):
             yield scrapy.Request(next_page, callback=self.parse)
 
     def parse_detail(self, response, data):
+        data['description'] = response.css('.B_I_content::text').get()
         data['status'] = response.css('dd.statu::text').get()
         data['wordcount'] = response.css('table.book_data>tbody>tr:nth-child(3)>td::text').get()
         data['collectionCount'] = response.css('table.book_data:nth-child(2)>tbody>tr:nth-child(1)>td::text').get()
+        
+        article_list_url = f"https://www.po18.tw/books/{data['bid'][2:]}/articles"
+        yield scrapy.Request(article_list_url, callback=self.parse_list, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
+                cb_kwargs=dict(data=data))
+
+    def parse_list(self, response, data):
+        first_item = response.css('#w0.list-view>div:nth-child(1) .l_date::text').get()
+        if first_item != None:
+            data['publish_time'] = first_item.split(' ')[1]
         yield data
