@@ -152,7 +152,7 @@ def save_books(platform):
                         l['title'].replace("'", '|'), l['bid'], l['book_url'], l['cover'], l['description'].replace("'", '|'), \
                         l['style'], l['type'], l['status'], l['publish_time'], 
                         int(l['wordcount']) if l['wordcount'] != None else -1, 
-                        int(l['collectionCount']), 
+                        int(l['collectionCount']) if l['collectionCount'] != None else -1, 
                         l['searchKeyword'].replace("'", '|') if l['searchKeyword'] != None else '',
                         author_id, platform_dict[platform])
                     sql = "UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid'])
@@ -163,7 +163,7 @@ def save_books(platform):
                         (l['title'].replace("'", '|'), l['bid'], l['book_url'], l['cover'], l['description'].replace("'", '|'), l['style'], l['type'], l['status'],
                         l['publish_time'],
                         int(l['wordcount']) if l['wordcount'] != None else -1, 
-                        int(l['collectionCount']),
+                        int(l['collectionCount']) if l['collectionCount'] != None else -1,
                         l['searchKeyword'],
                         author_id, platform_dict[platform]))
             except Exception as e:

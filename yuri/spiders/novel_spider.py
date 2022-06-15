@@ -220,7 +220,7 @@ class CpSpider(scrapy.Spider):
                 yield data
             else:
                 data['type'] = novel_info['type_names']
-                data['collectionCount'] = novel_info['novel_allcoll']
+                data['collectionCount'] = novel_info['novel_allcoll'] if novel_info['novel_allcoll'] != None else -1
                 data['publish_time']= novel_info['create_time']
                 data['description'] = novel_info['novel_info']
                 yield data
