@@ -1,7 +1,7 @@
 import scrapy
+from pyquery import PyQuery as pq
 from pyunit_time import Time
-import time
-import re
+import time, re, json
 
 # last update at 6.4, 添加desc字段
 class YuriSpider(scrapy.Spider):
@@ -75,13 +75,12 @@ class YuriSpider(scrapy.Spider):
         data['searchKeyword'] = keyword if keyword != None else ''
         yield data
 
-# last update at 5.2
+# last update at 6.15
 class HaitangSpider(scrapy.Spider):
     name = 'haitang'
     allowed_domains = ['www.newhtbook.com']
     start_urls = ['https://www.newhtbook.com/searchlist.php?fixlangsnd=FsedAjjT6&fixlangact=edit&selsexytype=c']
     # &searchkpage=2
-    
 
     def __init__(self):
         self.page_count = 1
@@ -104,7 +103,8 @@ class HaitangSpider(scrapy.Spider):
                 'style': '',
                 'type': '',
                 'publish_time': '',
-                'searchKeyword': ''
+                'searchKeyword': '',
+                'description': ''
             }
             item['tags'] = list(set(item['tags']))
             item['aid'] = item['author_url'].split('=')[-1]
@@ -120,11 +120,10 @@ class HaitangSpider(scrapy.Spider):
             if item['wordcount'] == None:
                 item['wordcount'] = 0
 
-            # yield item
             yield scrapy.Request(item['book_url'], self.parse_detail, 
                 cb_kwargs=dict(data=item))
 
-        if len(tds) >= 50:
+        if len(tds) >= 50 and self.page_count < 30: # 根据时间修改page count
             self.page_count += 1
             next_page = self.base_url + '&searchkpage={}'.format(self.page_count)
             yield scrapy.Request(next_page, callback=self.parse)
@@ -134,6 +133,27 @@ class HaitangSpider(scrapy.Spider):
         if collection_count_el == None:
             collection_count_el = response.css('div.uk-card font:nth-child(7)::text').get()
         data['collectionCount'] = collection_count_el
+
+        # description
+        td_content = response.css('div.uk-card').get()
+        td_content = td_content.replace('<br>', '')
+        desc_search = re.search(r'<font color="#800080".*</font>(.*?)<div id=', td_content, flags=re.DOTALL)
+        if desc_search != None:
+            data['description'] = desc_search.group(1).strip()
+        
+        # open list page to get publish time
+        list_url = 'https://www.newhtbook.com/showbooklist.php'
+        post_data = {
+          'ebookid': data['bid'][2:], 
+          'showbooklisttype': '1'
+        }
+        yield scrapy.FormRequest(list_url, self.parse_list, formdata=post_data, 
+                cb_kwargs=dict(data=data))
+    
+    def parse_list(self, response, data):
+        time_search = re.search(r'uk-tooltip="刊登時間"></span></font>(.*?)&nbsp;', response.text)
+        if time_search != None:
+            data['publish_time'] = time_search.group(1)
         yield data
 
 # last update at 5.2
@@ -200,7 +220,7 @@ class CpSpider(scrapy.Spider):
             else:
                 data['type'] = novel_info['type_names']
                 data['collectionCount'] = novel_info['novel_allcoll']
-                data['publish_time']: novel_info['create_time']
+                data['publish_time']= novel_info['create_time']
                 yield data
 
 # last update at 5.2
