@@ -1,7 +1,8 @@
 import scrapy
 import time
 
-# 长期有效
+# fanjiao页面加载sign，长期有效
+# 2022.7.11 24页
 sign_dict = {
     '1': '64deb9d3e26d320f92460e0b357569b2',
     '2': 'f898dcf5804704ca9516dba1a3f80ad4',
@@ -20,18 +21,24 @@ sign_dict = {
     '15': '24514621129da369f75ef537f595bac4',
     '16': '7963ed1eb3918d01f3081dad3f733418',
     '17': '01362edb85d7035c6bea3b9c60d422f6',
+    '18': '01362edb85d7035c6bea3b9c60d422f6',
+    '19': '01362edb85d7035c6bea3b9c60d422f6',
+    '20': '01362edb85d7035c6bea3b9c60d422f6',
+    '21': '01362edb85d7035c6bea3b9c60d422f6',
+    '22': '01362edb85d7035c6bea3b9c60d422f6',
+    '23': '01362edb85d7035c6bea3b9c60d422f6',
+    '24': '01362edb85d7035c6bea3b9c60d422f6',
     # '18': '01362edb85d7035c6bea3b9c60d422f6',
 }
 
 class FanjiaoSpider(scrapy.Spider):
     name = 'fanjiao'
     allowed_domains = ['https://api.fanjiao.co']
-    start_urls = ['https://api.fanjiao.co/walkman/api/recommend/category?cate_id=7&page={}&size=20'.format(i) for i in range(1, 18)]
+    start_urls = ['https://api.fanjiao.co/walkman/api/recommend/category?cate_id=7&page={}&size=20'.format(i) for i in range(1, 25)]
 
-    
     headers = [{
         'signature': sign_dict[str(i)]
-    } for i in range(1, 18)]
+    } for i in range(1, 25)]
 
     def start_requests(self):
         for url in self.start_urls:
@@ -52,15 +59,22 @@ class FanjiaoSpider(scrapy.Spider):
             }
             yield drama
 
+
+# 百合分类失效
 class MaoerSpider(scrapy.Spider):
     name = 'maoer'
+    series_not_finished = '1'
+    series_finished = '2'
+    one_ep = '3'
+    small_ep = '4'
+    current_type = '1'
     # 0_5_1_0_0 长篇未完结
     # 0_5_2_0_0 长篇完结 8.24
     # 0_5_3_0_0 全一期 8.31
     # 0_5_4_0_0 微小剧 9.9
-    start_urls = ['https://www.missevan.com/dramaapi/filter?filters=0_5_1_0_0&page=1&order=1&page_size=50']
+    start_urls = [f'https://www.missevan.com/dramaapi/filter?filters=0_5_{current_type}_0_0&page=1&order=1&page_size=50']
     page_count = 1
-    base_url = 'https://www.missevan.com/dramaapi/filter?filters=0_5_1_0_0&page={}&order=1&page_size=50'
+    base_url = f'https://www.missevan.com/dramaapi/filter?filters=0_5_{current_type}_0_0&order=1&page_size=50'
     handle_httpstatus_list = [418]
 
     def get_status(self, integrity):
@@ -85,7 +99,7 @@ class MaoerSpider(scrapy.Spider):
 
         if has_more:
             self.page_count = self.page_count + 1
-            next_page = self.base_url.format(self.page_count)
+            next_page = self.base_url + f'&page={self.page_count}'
             yield scrapy.Request(next_page, callback=self.parse)
 
     def get_drama(self, response, data):
@@ -99,7 +113,7 @@ class MaoerSpider(scrapy.Spider):
             # no up data, open a sound to get up info
             if len(eps) > 0:
                 sound_id = eps[0]['sound_id']
-                yield scrapy.Request('https://www.missevan.com/sound/getsound?soundid={}'.format(sound_id), self.get_sound, 
+                yield scrapy.Request(f'https://www.missevan.com/sound/getsound?soundid={sound_id}', self.get_sound, 
                         cb_kwargs=dict(data=data))
             else:
                 yield data

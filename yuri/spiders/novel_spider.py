@@ -3,7 +3,7 @@ from pyquery import PyQuery as pq
 from pyunit_time import Time
 import time, re, json
 
-# last update at 6.4, 添加desc字段
+# last update at 7.11, 添加desc字段
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -43,7 +43,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 30: # 根据时间修改page count
+        if len(current_page_list) >= 60 and self.page_count < 40: # 根据时间修改page count
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
@@ -75,16 +75,18 @@ class YuriSpider(scrapy.Spider):
         data['searchKeyword'] = keyword if keyword != None else ''
         yield data
 
-# last update at 6.15
+# last update at 7.11
 class HaitangSpider(scrapy.Spider):
     name = 'haitang'
     allowed_domains = ['www.newhtbook.com']
     start_urls = ['https://www.newhtbook.com/searchlist.php?fixlangsnd=FsedAjjT6&fixlangact=edit&selsexytype=c']
+    # start_urls = ['http://ebook.longmabook.com/searchlist.php?fixlangsnd=FsedAjjT6&fixlangact=edit&selsexytype=c']
     # &searchkpage=2
 
     def __init__(self):
         self.page_count = 1
         self.base_url = 'https://www.newhtbook.com/searchlist.php?fixlangsnd=FsedAjjT6&fixlangact=edit&selsexytype=c'
+        # self.base_url = 'http://ebook.longmabook.com/searchlist.php?fixlangsnd=FsedAjjT6&fixlangact=edit&selsexytype=c'
 
     def parse(self, response):
         tds = response.css('table.uk-table tr>td')[1:]
@@ -93,6 +95,7 @@ class HaitangSpider(scrapy.Spider):
             item = {
                 'title': td.css('a:first-child>font>b::text').get(),
                 'book_url': 'https://www.newhtbook.com' + href,
+                # 'book_url': 'http://ebook.longmabook.com' + href,
                 'bid': 'ht' + re.search(r'bookid=(\d+)', href).group(1),
                 'author': td.css('a:nth-child(6)>font::text').get(),
                 'author_url': 'https://www.newhtbook.com' + td.css('a:nth-child(6)::attr(href)').get(),
@@ -123,7 +126,7 @@ class HaitangSpider(scrapy.Spider):
             yield scrapy.Request(item['book_url'], self.parse_detail, 
                 cb_kwargs=dict(data=item))
 
-        if len(tds) >= 50 and self.page_count < 30: # 根据时间修改page count
+        if len(tds) >= 50 and self.page_count < 5: # 根据时间修改page count
             self.page_count += 1
             next_page = self.base_url + '&searchkpage={}'.format(self.page_count)
             yield scrapy.Request(next_page, callback=self.parse)
@@ -143,6 +146,7 @@ class HaitangSpider(scrapy.Spider):
         
         # open list page to get publish time
         list_url = 'https://www.newhtbook.com/showbooklist.php'
+        # list_url = 'http://ebook.longmabook.com/showbooklist.php'
         post_data = {
           'ebookid': data['bid'][2:], 
           'showbooklisttype': '1'
@@ -156,7 +160,7 @@ class HaitangSpider(scrapy.Spider):
             data['publish_time'] = time_search.group(1)
         yield data
 
-# last update at 6.15 默认只抓前100条
+# last update at 7.11 默认只抓前100条
 class CpSpider(scrapy.Spider):
     name = 'changpei'
     allowed_domains = ['gongzicp.com']
@@ -225,7 +229,7 @@ class CpSpider(scrapy.Spider):
                 data['description'] = novel_info['novel_info']
                 yield data
 
-# last update at 5.2
+# last update at 7.11
 class PoSpider(scrapy.Spider):
     name = 'po'
     allowed_domains = ['www.po18.tw']
@@ -259,13 +263,13 @@ class PoSpider(scrapy.Spider):
             yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=item))
 
-        if len(divs) >= 10:
+        if len(divs) >= 10 and self.page_count < 5:
             self.page_count += 1
             next_page = self.base_url + '&page={}'.format(self.page_count)
             yield scrapy.Request(next_page, callback=self.parse)
 
     def parse_detail(self, response, data):
-        data['description'] = response.css('.B_I_content::text').get()
+        data['description'] = response.css('.B_I_content').get()
         data['status'] = response.css('dd.statu::text').get()
         data['wordcount'] = response.css('table.book_data>tbody>tr:nth-child(3)>td::text').get()
         data['collectionCount'] = response.css('table.book_data:nth-child(2)>tbody>tr:nth-child(1)>td::text').get()
