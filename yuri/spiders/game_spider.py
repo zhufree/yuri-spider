@@ -28,6 +28,7 @@ def get_66rpg_list():
 				'cover': cover,
 				'url': url,
 				'gId': 'cg' + url.split('/')[-1],
+				'platform': 11,
 				'author': author,
 				'authorUrl': author_url
 			}
@@ -85,6 +86,7 @@ def save_game_items():
 	with open('{}-items.json'.format('chengguang'), 'w', encoding='utf-8') as f:
 		for i in chengguang_items:
 			f.write(json.dumps(i, ensure_ascii=False) + '\n')
+
 
 if __name__ == '__main__':
 	get_66rpg_list()
