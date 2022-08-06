@@ -109,24 +109,6 @@ class MaoerSpider(scrapy.Spider):
             res_json = response.json()
             data['intro'] = res_json['info']['drama']['abstract']
             data['playCount'] = res_json['info']['drama']['view_count']
-            eps = res_json['info']['episodes']['episode']
-            # no up data, open a sound to get up info
-            if len(eps) > 0:
-                sound_id = eps[0]['sound_id']
-                yield scrapy.Request(f'https://www.missevan.com/sound/getsound?soundid={sound_id}', self.get_sound, 
-                        cb_kwargs=dict(data=data))
-            else:
-                yield data
-
-
-    def get_sound(self, response, data):
-        if response.status == 418:
-            print(response.url)
-        else:
-            res_json = response.json()
-            if 'user' in res_json['info'].keys():
-                username = res_json['info']['user']['username']
-                data['up'] = username
+            data['up'] = res_json['info']['drama']['author']
             yield data
-
 
