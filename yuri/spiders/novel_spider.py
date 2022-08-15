@@ -3,7 +3,7 @@ from pyquery import PyQuery as pq
 from pyunit_time import Time
 import time, re, json
 
-# last update at 7.11, 添加desc字段
+# last update at 8.15
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -43,7 +43,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 30: # 根据时间修改page count
+        if len(current_page_list) >= 60 and self.page_count < 15: # 根据时间修改page count
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
@@ -75,7 +75,6 @@ class YuriSpider(scrapy.Spider):
         data['searchKeyword'] = keyword if keyword != None else ''
         yield data
 
-# last update at 7.11
 class HaitangSpider(scrapy.Spider):
     name = 'haitang'
     allowed_domains = ['www.newhtbook.com']
@@ -160,7 +159,7 @@ class HaitangSpider(scrapy.Spider):
             data['publish_time'] = time_search.group(1)
         yield data
 
-# last update at 7.11 默认只抓前100条
+# 默认只抓前100条
 class CpSpider(scrapy.Spider):
     name = 'changpei'
     allowed_domains = ['gongzicp.com']
@@ -229,7 +228,6 @@ class CpSpider(scrapy.Spider):
                 data['description'] = novel_info['novel_info']
                 yield data
 
-# last update at 7.11
 class PoSpider(scrapy.Spider):
     name = 'po'
     allowed_domains = ['www.po18.tw']
