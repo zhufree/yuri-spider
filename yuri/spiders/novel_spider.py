@@ -10,7 +10,7 @@ class YuriSpider(scrapy.Spider):
     start_urls = [
         # 'http://www.jjwxc.net/bookbase.php?xx3=3',
         # 'https://www.jjwxc.net/bookbase.php?xx3=3&sortType=3' # 按发表时间
-        'https://www.jjwxc.net/bookbase.php?xx3=3&sortType=3&page=500' # 500 开始大概是2020年的作品
+        'https://www.jjwxc.net/bookbase.php?xx3=3&sortType=3&page=400' # 500 开始大概是2020年的作品
     ]
     page_count = 0
 
@@ -44,7 +44,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 50: # 根据时间修改page count
+        if len(current_page_list) >= 60 and self.page_count < 100: # 根据时间修改page count
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
