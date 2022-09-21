@@ -57,7 +57,7 @@ def get_up_and_id():
     up_dict = {}
     connect = sqlite3.connect(db_path)
     cursor = connect.cursor()
-    rows = cursor.execute("SELECT id, name from ups")
+    rows = cursor.execute("SELECT id, name from audio_staffs")
     for r in rows:
         _id = r[0]
         name = r[1]
