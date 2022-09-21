@@ -8,7 +8,7 @@ platform_dict = {
     'manbo': 5,
 }
 
-platform = 'maoer'
+platform = 'fanjiao'
 db_path = '../yuri-backend/.tmp/data.db'
 
 # 数据清洗，去重，以最新的为准
@@ -82,7 +82,16 @@ def play_count_key():
         return 'fjPlayCount'
     elif platform == 'maoer':
         return 'mrPlayCount'
+    elif platform == 'manbo':
+        return 'mbPlayCount'
 
+def get_platform_id():
+    if platform == 'fanjiao':
+        return 'fjId'
+    elif platform == 'maoer':
+        return 'mrId'
+    elif platform == 'manbo':
+        return 'mbId'
 
 def save_dramas():
     print('更新drama')
@@ -103,17 +112,18 @@ def save_dramas():
             try:
                 if l['name'] in old_drama_id_dict.keys():
                     update_data = "intro = '{}', cover = '{}', status = '{}', {} = {}, \
-                        up = {}".format(
+                        {} = {}, up = {}".format(
                         l['intro'].replace("'", '|') if l['intro'] != None else '', 
                         l['cover'], l['status'], play_count_key(),
                         int(l['playCount']) if l['playCount'] != None else -1, 
+                        get_platform_id(), int(l['adid']) if l['adid'] != None else 0,
                         up_id)
                     sql = "UPDATE audio_dramas SET {} WHERE name = '{}'".format(update_data, l['name'])
                     cursor.execute("UPDATE audio_dramas SET {} WHERE name = '{}'".format(update_data, l['name']))
                 else:
-                    cursor.execute('''INSERT INTO audio_dramas (name, intro, cover, status, {}, \
-                        up) VALUES (?,?,?,?,?,?)'''.format(play_count_key()),
-                        (l['name'], l['intro'], l['cover'], l['status'], l['playCount'], up_id))
+                    cursor.execute('''INSERT INTO audio_dramas (name, intro, cover, status, {}, {}, \
+                        up) VALUES (?,?,?,?,?,?,?)'''.format(play_count_key(), get_platform_id()),
+                        (l['name'], l['intro'], l['cover'], l['status'], l['playCount'], l['adid'], up_id))
             except Exception as e:
                 print(sql)
                 raise e

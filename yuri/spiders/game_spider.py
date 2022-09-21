@@ -61,24 +61,32 @@ def get_66rpg_api_list():
 						chengguang_items.append(item)
 
 def get_chengguang_detail(game_url):
-	doc = pq(game_url)
-	name = doc('.game-info>.title>span').text()
-	tags = doc('.tags > .tag').text().split(' ')
-	if '完结' in tags:
-		status = '完结'
+	print(game_url)
+	try:
+		doc = pq(game_url)
+	except Exception as e:
+		pass
 	else:
-		status = '未完结'
-	intro = doc('.content>.inner').text()
-	publish_time = doc('i.release-time').parent().next().text()
-	collection_count = doc('span.fav_count').text()
-	return {
-		'name': name,
-		'tags': tags,
-		'status': status,
-		'intro': intro,
-		'publishTime': publish_time,
-		'collectionCount': collection_count
-	}
+		name = doc('.game-info>.title>span').text()
+		tags = doc('.tags > .tag').text().split(' ')
+		if '完结' in tags:
+			status = '完结'
+		else:
+			status = '未完结'
+		intro = doc('.content>.inner').text()
+		publish_time = doc('i.release-time').parent().next().text()
+		collection_count = doc('span.fav_count').text()
+		return {
+			'name': name,
+			'tags': tags,
+			'status': status,
+			'intro': intro,
+			'publishTime': publish_time,
+			'collectionCount': collection_count
+		}
+	finally:
+		return {}
+	
 
 
 def save_game_items():

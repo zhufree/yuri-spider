@@ -89,7 +89,7 @@ class MaoerSpider(scrapy.Spider):
         for i in res_json['info']['Datas']:
             drama = {
                 'name': i['name'],
-                'adid': i['id'],
+                'adId': i['id'],
                 'cover': i['cover'],
                 'status': self.get_status(i['integrity']) + '|' + i['newest'],
             }

@@ -262,7 +262,7 @@ class PoSpider(scrapy.Spider):
             yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=item))
 
-        if len(divs) >= 10 and self.page_count < 5:
+        if len(divs) >= 10 and self.page_count < 3:
             self.page_count += 1
             next_page = self.base_url + '&page={}'.format(self.page_count)
             yield scrapy.Request(next_page, callback=self.parse)
