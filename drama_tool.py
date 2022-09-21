@@ -48,7 +48,7 @@ def save_ups():
     for u in up_list:
         if u not in old_up_list.keys():
             # insert or ignore exist ups
-            cursor.execute('''INSERT OR IGNORE INTO ups (name) VALUES (?)''', (u,))
+            cursor.execute('''INSERT OR IGNORE INTO audio_staffs (name, staffType) VALUES (?, ?)''', (u, '["up"]'))
     connect.commit()
     connect.close()
 
