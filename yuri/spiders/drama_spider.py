@@ -1,6 +1,6 @@
 import scrapy
 import time
-
+from hashlib import md5
 # fanjiao页面加载sign，长期有效
 # 2022.7.11 24页
 sign_dict = {
@@ -21,28 +21,30 @@ sign_dict = {
     '15': '24514621129da369f75ef537f595bac4',
     '16': '7963ed1eb3918d01f3081dad3f733418',
     '17': '01362edb85d7035c6bea3b9c60d422f6',
-    '18': '01362edb85d7035c6bea3b9c60d422f6',
-    '19': '01362edb85d7035c6bea3b9c60d422f6',
-    '20': '01362edb85d7035c6bea3b9c60d422f6',
-    '21': '01362edb85d7035c6bea3b9c60d422f6',
-    '22': '01362edb85d7035c6bea3b9c60d422f6',
-    '23': '01362edb85d7035c6bea3b9c60d422f6',
-    '24': '01362edb85d7035c6bea3b9c60d422f6',
     # '18': '01362edb85d7035c6bea3b9c60d422f6',
 }
 
+'''
+9.27
+"paging": {
+    "page_size": 50,
+    "page": 1,
+    "total": 491
+}
+'''
 class FanjiaoSpider(scrapy.Spider):
     name = 'fanjiao'
     allowed_domains = ['https://api.fanjiao.co']
-    start_urls = ['https://api.fanjiao.co/walkman/api/recommend/category?cate_id=7&page={}&size=20'.format(i) for i in range(1, 25)]
-
-    headers = [{
-        'signature': sign_dict[str(i)]
-    } for i in range(1, 25)]
+    start_urls = ['https://api.fanjiao.co/walkman/api/recommend/category?cate_id=7&page={}&size=50'.format(i) for i in range(1, 11)]
 
     def start_requests(self):
         for url in self.start_urls:
-            yield scrapy.Request(url, headers=self.headers[self.start_urls.index(url)] ,callback=self.parse)
+            param = url.split('?')[-1] + '879f30c4b1641142c6192acc23cfb733'
+            sign = md5(param.encode('utf-8')).hexdigest()
+            headers = {
+                'signature': sign
+            }
+            yield scrapy.Request(url, headers=headers ,callback=self.parse)
 
 
     def parse(self, response):
@@ -52,10 +54,10 @@ class FanjiaoSpider(scrapy.Spider):
                 'name': i['name'],
                 'adid': i['album_id'],
                 'intro': i['description'],
-                'cover': i['cover'],
+                'cover': i['square'],
                 'up': i['up_name'],
                 'playCount': i['play'],
-                'status': '已完结' if i['album_id'] < 100000 else '未知'
+                'status': '更新到' + i['new_audio_name']
             }
             yield drama
 
