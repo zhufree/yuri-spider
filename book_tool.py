@@ -140,6 +140,9 @@ def save_books(platform):
                         l['searchKeyword'].replace("'", '|') if l['searchKeyword'] != None else '')
                     sql = "UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid'])
                     cursor.execute("UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid']))
+                    book_row = cursor.execute(f"SELECT id FROM books WHERE bid = '{l['bid']}'")
+                    for row in book_row:
+                        cursor.execute(f'INSERT INTO authors_books_links (book_id, author_id) VALUES (?,?)', (row[0], author_id))
                 else:
                     cursor.execute('''INSERT INTO books (title, bid, url, cover, description, style, type, status, publish_time, \
                         wordcount, collection_count, search_keyword) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',
@@ -204,7 +207,7 @@ if __name__ == '__main__':
         'po'
     ]
     for p in platforms:
-        save_author(p)
-        save_tags(p)
+        # save_author(p)
+        # save_tags(p)
         save_books(p)
-        add_tags(p)
+        # add_tags(p)
