@@ -1,28 +1,6 @@
 import scrapy
 import time
 from hashlib import md5
-# fanjiao页面加载sign，长期有效
-# 2022.7.11 24页
-sign_dict = {
-    '1': '64deb9d3e26d320f92460e0b357569b2',
-    '2': 'f898dcf5804704ca9516dba1a3f80ad4',
-    '3': '74ee0bdabdd0550b3e0b348f0a1439c9',
-    '4': '493a49a4628019a082b09f492d33d96e',
-    '5': 'f2f639b1ea4b48a9ea54087c239f644f',
-    '6': '8d9525c1ddf1ecb2508b10fdb4ae36c4',
-    '7': 'f37ad47162ce8b80c1e53ec4c5202800',
-    '8': 'ee570da44f159bf6ad7b736c0989633e',
-    '9': '28b6f0bf75b8317d20f216016ba555fe',
-    '10': '5f1a14b2282e02d8ef5e5046d0d1d6f7',
-    '11': '835e148804b9c55cdeba6cbf342b2fab',
-    '12': '69f64e491a38dd6ba9e2e51f3b497cf8',
-    '13': 'f8db257bffc5cb376862a913b7a1c4c6',
-    '14': '32df54a469402bee98f0448b1d653dd2',
-    '15': '24514621129da369f75ef537f595bac4',
-    '16': '7963ed1eb3918d01f3081dad3f733418',
-    '17': '01362edb85d7035c6bea3b9c60d422f6',
-    # '18': '01362edb85d7035c6bea3b9c60d422f6',
-}
 
 '''
 9.27

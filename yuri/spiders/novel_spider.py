@@ -44,7 +44,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 13: # 根据时间修改page count
+        if len(current_page_list) >= 60 and self.page_count < 30: # 根据时间修改page count
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
@@ -177,7 +177,6 @@ class CpSpider(scrapy.Spider):
         res_json = response.json()
         novel_list = res_json['data']['list']
         for j in novel_list:
-            print(j)
             current_novel = {
                 'title': j['novel_name'],
                 'bid': 'cp' + str(j['novel_id']),

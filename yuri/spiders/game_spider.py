@@ -57,16 +57,14 @@ def get_66rpg_api_list():
 					}
 					if item['name'] != '' and item['name'] not in [i['name'] for i in chengguang_items]:
 						detail = get_chengguang_detail(item['url'])
-						item.update(detail)
+						if detail != None:
+							item.update(detail)
 						chengguang_items.append(item)
 
 def get_chengguang_detail(game_url):
 	print(game_url)
 	try:
 		doc = pq(game_url)
-	except Exception as e:
-		pass
-	else:
 		name = doc('.game-info>.title>span').text()
 		tags = doc('.tags > .tag').text().split(' ')
 		if '完结' in tags:
@@ -84,8 +82,10 @@ def get_chengguang_detail(game_url):
 			'publishTime': publish_time,
 			'collectionCount': collection_count
 		}
+	except Exception as e:
+		print(e)
 	finally:
-		return {}
+		pass
 	
 
 

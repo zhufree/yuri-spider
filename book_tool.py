@@ -11,77 +11,6 @@ platform_dict = {
 
 db_path = '../yuri-backend/.tmp/data.db'
 
-# 数据清洗，去重
-def clear_data(platform):
-    result_list = []
-    bid_list = []
-    with open("{}-items.json".format(platform), 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-        for l in lines:
-            d = json.loads(l)
-            if d['bid'] not in bid_list:
-                bid_list.append(d['bid'])
-                result_list.append(l)
-            else:
-                print('already exist')
-        print(len(result_list))
-    with open("save-{}-items.json".format(platform), 'w', encoding='utf-8') as f:
-        f.writelines(result_list)
-
-
-# 先录入作者，tag，再录入book，匹配作者和tag id
-def save_author(platform):
-    print('更新作者：')
-    author_dict = {}
-    with open("{}-items.json".format(platform), 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-        for l in lines:
-            d = json.loads(l)
-            author_name = d['author']
-            author_url = d['author_url']
-            aid = d['aid']
-            if aid not in author_dict.keys():
-                author_dict[aid] = {
-                    'url': author_url,
-                    'aid': aid,
-                    'name': author_name
-                }
-    connect = sqlite3.connect(db_path)
-    cursor = connect.cursor()
-    old_authors_dict = get_author_and_id()
-    for aid in author_dict.keys():
-        if aid in old_authors_dict.keys():
-            # update old data
-            update_data = "url = '{}', aid = '{}', platform = {}".format(author_dict[aid]['url'], author_dict[aid]['aid'], platform_dict[platform])
-            cursor.execute("UPDATE authors SET {} WHERE aid = '{}'".format(update_data, aid))
-        else:
-            cursor.execute(
-                '''INSERT INTO authors (name, url, aid, platform) VALUES (?,?,?,?)''',
-                (author_dict[aid]['name'],author_dict[aid]['url'],author_dict[aid]['aid'],platform_dict[platform]))
-    connect.commit()
-    connect.close()
-
-
-def save_tags(platform):
-    print('更新tag')
-    tag_list = []
-    old_tag_list = get_tag_and_id()
-    with open("{}-items.json".format(platform), 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-        for line in lines:
-            item = json.loads(line)
-            tag_list += item['tags']
-    tag_list = list(set(tag_list))
-    tag_list = [i for i in tag_list if len(i) > 0]
-    connect = sqlite3.connect(db_path)
-    cursor = connect.cursor()
-    for t in tag_list:
-        if t not in old_tag_list.keys():
-            # insert or ignore exist tags
-            cursor.execute('''INSERT OR IGNORE INTO tags (name) VALUES (?)''', (t,))
-    connect.commit()
-    connect.close()
-
 
 # 获取作者id {'aid': id}
 def get_author_and_id():
@@ -119,6 +48,62 @@ def get_book_and_id():
         book_dict[bid] = _id
     return book_dict
 
+# 先录入作者，tag，再录入book，匹配作者和tag id
+def save_author(platform):
+    print('更新作者：')
+    author_dict = {}
+    with open("{}-items.json".format(platform), 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for l in lines:
+            d = json.loads(l)
+            author_name = d['author']
+            author_url = d['author_url']
+            aid = d['aid']
+            if aid not in author_dict.keys():
+                author_dict[aid] = {
+                    'url': author_url,
+                    'aid': aid,
+                    'name': author_name
+                }
+    connect = sqlite3.connect(db_path)
+    cursor = connect.cursor()
+    old_authors_dict = get_author_and_id()
+    for aid in author_dict.keys():
+        if aid in old_authors_dict.keys():
+            # update old data
+            update_data = "url = '{}', name = '{}'".format(author_dict[aid]['url'], author_dict[aid]['name'])
+            cursor.execute("UPDATE authors SET {} WHERE aid = '{}'".format(update_data, aid))
+        else:
+            cursor.execute(
+                '''INSERT INTO authors (name, url, aid) VALUES (?,?,?)''',
+                (author_dict[aid]['name'],author_dict[aid]['url'],author_dict[aid]['aid']))
+            # add platform link
+            cursor.execute(f'INSERT INTO authors_platform_links (author_id, platform_id) VALUES (?,?)', (cursor.lastrowid, platform_dict[platform]))
+    connect.commit()
+    connect.close()
+
+
+def save_tags(platform):
+    print('更新tag')
+    tag_list = []
+    old_tag_list = get_tag_and_id()
+    with open("{}-items.json".format(platform), 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for line in lines:
+            item = json.loads(line)
+            tag_list += item['tags']
+    tag_list = list(set(tag_list))
+    tag_list = [i for i in tag_list if len(i) > 0]
+    connect = sqlite3.connect(db_path)
+    cursor = connect.cursor()
+    for t in tag_list:
+        if t not in old_tag_list.keys():
+            # insert or ignore exist tags
+            cursor.execute('''INSERT OR IGNORE INTO tags (name) VALUES (?)''', (t,))
+    connect.commit()
+    connect.close()
+
+
 def save_books(platform):
     print('更新novel')
     author_id_dict = get_author_and_id()
@@ -141,31 +126,32 @@ def save_books(platform):
                 author_id = author_id_dict[l['aid']]
             else:
                 author_id = 0
-
             sql = ''
             try:
                 if l['bid'] in old_book_id_dict.keys():
                     # collectionCount 负数不录入
                     update_data = "title = '{}', bid = '{}', url = '{}', cover = '{}', description = '{}', \
-                    style = '{}', type = '{}', status = '{}', publishTime = '{}', wordcount = {}, \
-                    collectionCount = {}, searchKeyword = '{}', author = {}, platform = {}".format(
+                    style = '{}', type = '{}', status = '{}', publish_time = '{}', wordcount = {}, \
+                    collection_count = {}, search_keyword = '{}'".format(
                         l['title'].replace("'", '|'), l['bid'], l['book_url'], l['cover'], l['description'].replace("'", '|'), \
                         l['style'], l['type'], l['status'], l['publish_time'], 
                         int(l['wordcount']) if l['wordcount'] != None else -1, 
                         int(l['collectionCount']) if l['collectionCount'] != None else -1, 
-                        l['searchKeyword'].replace("'", '|') if l['searchKeyword'] != None else '',
-                        author_id, platform_dict[platform])
+                        l['searchKeyword'].replace("'", '|') if l['searchKeyword'] != None else '')
                     sql = "UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid'])
                     cursor.execute("UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid']))
                 else:
-                    cursor.execute('''INSERT INTO books (title, bid, url, cover, description, style, type, status, publishTime, \
-                        wordcount, collectionCount, searchKeyword, author, platform) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+                    cursor.execute('''INSERT INTO books (title, bid, url, cover, description, style, type, status, publish_time, \
+                        wordcount, collection_count, search_keyword) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',
                         (l['title'].replace("'", '|'), l['bid'], l['book_url'], l['cover'], l['description'].replace("'", '|'), l['style'], l['type'], l['status'],
                         l['publish_time'],
                         int(l['wordcount']) if l['wordcount'] != None else -1, 
                         int(l['collectionCount']) if l['collectionCount'] != None else -1,
-                        l['searchKeyword'],
-                        author_id, platform_dict[platform]))
+                        l['searchKeyword']))
+                    book_id = cursor.lastrowid
+                    # insert author link and platform link
+                    cursor.execute(f'INSERT INTO books_author_links (book_id, author_id) VALUES (?,?)', (book_id, author_id))
+                    cursor.execute(f'INSERT INTO books_platform_links (book_id, platform_id) VALUES (?,?)', (book_id, platform_dict[platform]))
             except Exception as e:
                 print(sql)
                 raise e
@@ -180,7 +166,7 @@ def add_tags(platform):
     book_id_dict = get_book_and_id()
     connect = sqlite3.connect(db_path)
     cursor = connect.cursor()
-    rows = cursor.execute("SELECT book_id, tag_id from books__tags")
+    rows = cursor.execute("SELECT book_id, tag_id from books_tags_links")
     book_tag_dict = {}
     for r in rows:
         book_id = r[0]
@@ -203,7 +189,7 @@ def add_tags(platform):
             for tag_id in tag_ids: # insert book-tag relation one by one
                 if book_id not in book_tag_dict.keys() or tag_id not in book_tag_dict[book_id]:
                     # check if the tag and book connection exist
-                    cursor.execute("INSERT INTO books__tags (book_id, tag_id) \
+                    cursor.execute("INSERT INTO books_tags_links (book_id, tag_id) \
                     VALUES ({}, {})".format(book_id, tag_id))
         connect.commit()
         connect.close()
@@ -212,9 +198,10 @@ def add_tags(platform):
 if __name__ == '__main__':
     # clear_data()
     platforms = [
-    'jjwxc', 'changpei',
-    'haitang',
-    'po'
+        'jjwxc',
+        'changpei',
+        'haitang',
+        'po'
     ]
     for p in platforms:
         save_author(p)

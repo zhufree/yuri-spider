@@ -14,10 +14,8 @@ def get_game_and_id():
     game_dict = {}
     connect = sqlite3.connect(db_path)
     cursor = connect.cursor()
-    rows = cursor.execute("SELECT id, gId from games")
+    rows = cursor.execute("SELECT id, g_id from games")
     for r in rows:
-        # bid = r[1]
-        # game_dict[bid] = r[0]
         game_dict[r[1]] = r[0]  # gId: id
     return game_dict
 
@@ -35,21 +33,22 @@ def save_games():
             sql = ''
             try:
                 if l['gId'] in old_game_id_dict.keys():
-                    update_data = "intro = '{}', cover = '{}', status = '{}', collectionCount = {}, \
-                        platform = {}".format(
+                    update_data = "intro = '{}', cover = '{}', status = '{}', collection_count = {}".format(
                         l['intro'].replace("'", '|') if l['intro'] != None else '', 
                         l['cover'], l['status'], 
-                        int(l['collectionCount']) if l['collectionCount'] != None else -1,
-                        platform_dict[platform])
+                        int(l['collectionCount']) if l['collectionCount'] != None else -1)
                     sql = "UPDATE games SET {} WHERE name = '{}'".format(update_data, l['name'])
                     cursor.execute("UPDATE games SET {} WHERE name = '{}'".format(update_data, l['name']))
                 else:
-                    cursor.execute('''INSERT INTO games (name, url, gId, cover, author, authorUrl, intro, \
-                        status, publishTime, collectionCount, game) VALUES (?,?,?,?,?,?,?,?,?,?)''',
+                    cursor.execute('''INSERT INTO games (name, url, g_id, cover, author, author_url, intro, \
+                        status, publish_time, collection_count) VALUES (?,?,?,?,?,?,?,?,?,?)''',
                         (l['name'],l['url'], l['gId'], l['cover'], l['author'], l['authorUrl'],
-                        l['intro'], l['status'], l['publishTime'], l['collectionCount'],
-                        platform_dict[platform]))
+                        l['intro'], l['status'], l['publishTime'], l['collectionCount']))
+                    # add platform link
+                    cursor.execute('''INSERT OR IGNORE INTO games_platform_links (game_id, platform_id) VALUES (?, ?)''', 
+                        (cursor.lastrowid, 11))
             except Exception as e:
+                print(l)
                 print(sql)
                 raise e
             
@@ -96,7 +95,7 @@ def add_tags():
     game_id_dict = get_game_and_id()
     connect = sqlite3.connect(db_path)
     cursor = connect.cursor()
-    rows = cursor.execute("SELECT game_id, tag_id from games__tags")
+    rows = cursor.execute("SELECT game_id, tag_id from games_tags_links")
     game_tag_dict = {}
     for r in rows:
         game_id = r[0]
@@ -119,7 +118,7 @@ def add_tags():
             for tag_id in tag_ids: # insert game-tag relation one by one
                 if game_id not in game_tag_dict.keys() or tag_id not in game_tag_dict[game_id]:
                     # check if the tag and game connection exist
-                    cursor.execute("INSERT INTO games__tags (game_id, tag_id) \
+                    cursor.execute("INSERT INTO games_tags_links (game_id, tag_id) \
                     VALUES ({}, {})".format(game_id, tag_id))
         connect.commit()
         connect.close()
