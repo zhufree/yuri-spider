@@ -3,7 +3,7 @@ import time
 from hashlib import md5
 
 '''
-9.27
+2022.11.3
 "paging": {
     "page_size": 50,
     "page": 1,
@@ -48,11 +48,11 @@ class MaoerSpider(scrapy.Spider):
     series_finished = '2'
     one_ep = '3'
     small_ep = '4'
-    current_type = '1'
-    # 0_5_1_0_0 长篇未完结
+    current_type = '2'
+    # 0_5_1_0_0 长篇未完结 2022.11.2
     # 0_5_2_0_0 长篇完结 8.24
     # 0_5_3_0_0 全一期 8.31
-    # 0_5_4_0_0 微小剧 9.9 无数据
+    # 0_5_4_0_0 微小剧 2022.11.2 无数据
     start_urls = [f'https://www.missevan.com/dramaapi/filter?filters=0_5_{current_type}_0_0&page=1&order=1&page_size=50']
     page_count = 1
     base_url = f'https://www.missevan.com/dramaapi/filter?filters=0_5_{current_type}_0_0&order=1&page_size=50'
