@@ -40,9 +40,10 @@ class FanjiaoSpider(scrapy.Spider):
             yield drama
 
 
-# 百合分类失效
+# 有ip拦截，少抓点
 class MaoerSpider(scrapy.Spider):
     name = 'maoer'
+    # types = [1, 2, 3, 4]
     series_not_finished = '1'
     series_finished = '2'
     one_ep = '3'
@@ -51,7 +52,7 @@ class MaoerSpider(scrapy.Spider):
     # 0_5_1_0_0 长篇未完结
     # 0_5_2_0_0 长篇完结 8.24
     # 0_5_3_0_0 全一期 8.31
-    # 0_5_4_0_0 微小剧 9.9
+    # 0_5_4_0_0 微小剧 9.9 无数据
     start_urls = [f'https://www.missevan.com/dramaapi/filter?filters=0_5_{current_type}_0_0&page=1&order=1&page_size=50']
     page_count = 1
     base_url = f'https://www.missevan.com/dramaapi/filter?filters=0_5_{current_type}_0_0&order=1&page_size=50'
@@ -69,17 +70,18 @@ class MaoerSpider(scrapy.Spider):
         for i in res_json['info']['Datas']:
             drama = {
                 'name': i['name'],
-                'adId': i['id'],
+                'adid': i['id'],
                 'cover': i['cover'],
                 'status': self.get_status(i['integrity']) + '|' + i['newest'],
             }
             yield scrapy.Request('https://www.missevan.com/dramaapi/getdrama?drama_id={}'.format(i['id']), self.get_drama, 
                 cb_kwargs=dict(data=drama))
-            # yield item
+            time.sleep(1)
 
         if has_more:
             self.page_count = self.page_count + 1
             next_page = self.base_url + f'&page={self.page_count}'
+            time.sleep(1)
             yield scrapy.Request(next_page, callback=self.parse)
 
     def get_drama(self, response, data):
@@ -88,7 +90,23 @@ class MaoerSpider(scrapy.Spider):
         else:
             res_json = response.json()
             data['intro'] = res_json['info']['drama']['abstract']
+            if data['intro'] == None:
+                return
             data['playCount'] = res_json['info']['drama']['view_count']
             data['up'] = res_json['info']['drama']['author']
-            yield data
+            eps = res_json['info']['episodes']['episode']
+            if len(eps) > 0:
+                ep_id = eps[0]['sound_id']
+                yield scrapy.Request(f'https://www.missevan.com/sound/getsound?soundid={ep_id}', self.get_sound,
+                    cb_kwargs=dict(data=data))
+            else:
+                return
 
+    def get_sound(self, response, data):
+        if response.status == 418:
+            print(response.url)
+        else:
+            ep_json = response.json()
+            if 'info' in ep_json and 'user' in ep_json['info']:
+                data['up'] = ep_json['info']['user']['username']
+        yield data

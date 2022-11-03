@@ -3,7 +3,7 @@ from pyquery import PyQuery as pq
 from pyunit_time import Time
 import time, re, json
 
-# last update at 10.18
+# last update at 10.30
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
