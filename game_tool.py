@@ -38,7 +38,7 @@ def save_games():
                         l['cover'], l['status'], 
                         int(l['collectionCount']) if l['collectionCount'] != None else -1)
                     sql = "UPDATE games SET {} WHERE name = '{}'".format(update_data, l['name'])
-                    cursor.execute("UPDATE games SET {} WHERE name = '{}'".format(update_data, l['name']))
+                    cursor.execute("UPDATE games SET {} WHERE name = '{}'".format(update_data, l['name'])) # ? why not gId
                 else:
                     cursor.execute('''INSERT INTO games (name, url, g_id, cover, author, author_url, intro, \
                         status, publish_time, collection_count) VALUES (?,?,?,?,?,?,?,?,?,?)''',

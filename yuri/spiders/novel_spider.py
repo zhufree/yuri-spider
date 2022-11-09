@@ -3,7 +3,7 @@ from pyquery import PyQuery as pq
 from pyunit_time import Time
 import time, re, json
 
-# last update at 10.30
+# last update at 2022.11.9
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -160,7 +160,7 @@ class HaitangSpider(scrapy.Spider):
             data['publish_time'] = time_search.group(1)
         yield data
 
-# 默认只抓前100条
+# 默认只抓前100条 2022.11.9
 class CpSpider(scrapy.Spider):
     name = 'changpei'
     allowed_domains = ['gongzicp.com']

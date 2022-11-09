@@ -201,8 +201,8 @@ if __name__ == '__main__':
     platforms = [
         'jjwxc',
         'changpei',
-        'haitang',
-        'po'
+        # 'haitang',
+        # 'po'
     ]
     for p in platforms:
         save_author(p)
