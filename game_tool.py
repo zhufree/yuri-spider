@@ -34,7 +34,7 @@ def save_games():
             try:
                 if l['gId'] in old_game_id_dict.keys():
                     update_data = "intro = '{}', cover = '{}', status = '{}', collection_count = {}".format(
-                        l['intro'].replace("'", '|') if l['intro'] != None else '', 
+                        l['intro'].replace("'", '|') if 'intro' in l.keys() else '', 
                         l['cover'], l['status'], 
                         int(l['collectionCount']) if l['collectionCount'] != None else -1)
                     sql = "UPDATE games SET {} WHERE name = '{}'".format(update_data, l['name'])
@@ -50,7 +50,7 @@ def save_games():
             except Exception as e:
                 print(l)
                 print(sql)
-                raise e
+                continue
             
         connect.commit()
         connect.close()
@@ -77,7 +77,8 @@ def save_tags():
         lines = f.readlines()
         for line in lines:
             item = json.loads(line)
-            tag_list += item['tags']
+            if 'tags' in item.keys():
+                tag_list += item['tags']
     tag_list = list(set(tag_list))
     tag_list = [i for i in tag_list if len(i) > 0]
     connect = sqlite3.connect(db_path)
@@ -110,6 +111,8 @@ def add_tags():
         cursor = connect.cursor()
         for line in lines:
             item = json.loads(line)
+            if 'tags' not in item.keys():
+                continue
             game_id = game_id_dict[item['gId']] # insert game by game
             tag_ids = []
             for t in item['tags']: 

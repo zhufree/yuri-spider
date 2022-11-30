@@ -3,7 +3,7 @@ import time
 from hashlib import md5
 
 '''
-2022.11.3
+2022.11.30
 "paging": {
     "page_size": 50,
     "page": 1,
@@ -37,6 +37,10 @@ class FanjiaoSpider(scrapy.Spider):
                 'playCount': i['play'],
                 'status': '更新到' + i['new_audio_name']
             }
+            if drama['up'] == '轻之声GL广播剧社':
+                drama['up'] = '轻之声广播剧社'
+            if drama['up'] == '桂圆翊宝':
+                drama['up'] = '桂圆翊宝（张宇琦）'
             yield drama
 
 
@@ -48,8 +52,8 @@ class MaoerSpider(scrapy.Spider):
     series_finished = '2'
     one_ep = '3'
     small_ep = '4'
-    current_type = '2'
-    # 0_5_1_0_0 长篇未完结 2022.11.2
+    current_type = '1'
+    # 0_5_1_0_0 长篇未完结 2022.11.30
     # 0_5_2_0_0 长篇完结 8.24
     # 0_5_3_0_0 全一期 8.31
     # 0_5_4_0_0 微小剧 2022.11.2 无数据

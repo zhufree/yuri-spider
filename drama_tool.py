@@ -40,6 +40,8 @@ def save_ups(platform):
             if 'up' in item.keys():
                 if item['up'] == '轻之声GL广播剧社':
                     item['up'] = '轻之声广播剧社'
+                if item['up'] == '桂圆翊宝':
+                    item['up'] = '桂圆翊宝（张宇琦）'
             if item['up'] != '' and item['up'] != None:
                 up_list.append(item['up'])
     up_list = list(set(up_list))

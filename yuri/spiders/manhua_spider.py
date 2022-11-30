@@ -26,12 +26,12 @@ class KuaikanSpider(scrapy.Spider):
                 'name': i.css('.itemTitle::text').get(),
                 'url': self.base_url + url_part,
                 'cover': i.css('img.img::attr(src)').get(),
-                'authoName': i.css('.itemTitle::text').get(),
+                'authorName': i.css('.author::text').get().strip(),
                 'platform': 10
             }
             yield scrapy.Request(manhua['url'], self.parse_detail_page, 
                 cb_kwargs=dict(data=manhua))
-        if len(items) >= 48:
+        if len(items) >= 40:
             print('next page')
             self.page += 1
             yield scrapy.Request(f'https://www.kuaikanmanhua.com/tag/90?region=2&page={self.page}', self.parse)
