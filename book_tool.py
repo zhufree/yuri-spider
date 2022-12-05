@@ -6,7 +6,7 @@ platform_dict = {
     'jjwxc': 1,
     'changpei': 2,
     'haitang': 7,
-    'po': 8
+    'po18': 8
 }
 
 db_path = '../yuri-backend/.tmp/data.db'
@@ -107,7 +107,6 @@ def save_tags(platform):
 def save_books(platform):
     print('更新novel')
     author_id_dict = get_author_and_id()
-    tag_id_dict = get_tag_and_id()
     old_book_id_dict = get_book_and_id()
     with open("{}-items.json".format(platform), 'r', encoding='utf-8') as f:
         lines = f.readlines()
@@ -129,6 +128,7 @@ def save_books(platform):
             sql = ''
             try:
                 if l['bid'] in old_book_id_dict.keys():
+                    # 已有，更新数据
                     # collectionCount 负数不录入
                     update_data = "title = '{}', bid = '{}', url = '{}', cover = '{}', description = '{}', \
                     style = '{}', type = '{}', status = '{}', publish_time = '{}', wordcount = {}, \
@@ -140,7 +140,10 @@ def save_books(platform):
                         l['searchKeyword'].replace("'", '|') if l['searchKeyword'] != None else '')
                     sql = "UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid'])
                     cursor.execute("UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid']))
+                    book_id = old_book_id_dict[l['bid']]
+                    cursor.execute(f"UPDATE books_author_links SET author_id = '{author_id}' WHERE book_id = '{book_id}'")
                 else:
+                    # 插入新数据
                     cursor.execute('''INSERT INTO books (title, bid, url, cover, description, style, type, status, publish_time, \
                         wordcount, collection_count, search_keyword) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',
                         (l['title'].replace("'", '|'), l['bid'], l['book_url'], l['cover'], l['description'].replace("'", '|'), l['style'], l['type'], l['status'],
@@ -151,7 +154,6 @@ def save_books(platform):
                     book_id = cursor.lastrowid
                     # insert author link and platform link
                     cursor.execute(f'INSERT INTO books_author_links (book_id, author_id) VALUES (?,?)', (book_id, author_id))
-                    cursor.execute(f'INSERT INTO authors_books_links (book_id, author_id) VALUES (?,?)', (book_id, author_id))
                     cursor.execute(f'INSERT INTO books_platform_links (book_id, platform_id) VALUES (?,?)', (book_id, platform_dict[platform]))
             except Exception as e:
                 print(sql)
@@ -199,10 +201,10 @@ def add_tags(platform):
 if __name__ == '__main__':
     # clear_data()
     platforms = [
-        'jjwxc',
-        'changpei',
+        # 'jjwxc',
+        # 'changpei',
         # 'haitang',
-        # 'po'
+        'po18'
     ]
     for p in platforms:
         save_author(p)

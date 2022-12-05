@@ -228,8 +228,8 @@ class CpSpider(scrapy.Spider):
                 data['description'] = novel_info['novel_info']
                 yield data
 
-class PoSpider(scrapy.Spider):
-    name = 'po'
+class Po18Spider(scrapy.Spider):
+    name = 'po18'
     allowed_domains = ['www.po18.tw']
     start_urls = ['https://www.po18.tw/tags/subbooks?id=23_'] #按最新章回的更新时间排序的
 
@@ -256,12 +256,12 @@ class PoSpider(scrapy.Spider):
                 'searchKeyword': div.css('.intro::text').get()
             }
             item['tags'] = list(set(item['tags']))
-            item['aid'] = 'po' + item['author_url'].replace('https://www.po18.tw/users/', '')
+            item['aid'] = 'po' + item['author']
 
             yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=item))
 
-        if len(divs) >= 10 and self.page_count < 3:
+        if len(divs) == 10:
             self.page_count += 1
             next_page = self.base_url + '&page={}'.format(self.page_count)
             yield scrapy.Request(next_page, callback=self.parse)
@@ -281,3 +281,17 @@ class PoSpider(scrapy.Spider):
         if first_item != None:
             data['publish_time'] = first_item.split(' ')[1]
         yield data
+
+class PoSpider(scrapy.Spider):
+    name = 'po'
+    allowed_domains = ['www.po18.tw']
+    start_urls = ['https://www.po18.tw/tags/subbooks?id=23_'] #按最新章回的更新时间排序的
+
+    # https://www.popo.tw/findbooks POST
+    # tag: 23 cate: 1
+    def __init__(self):
+        self.page_count = 1
+        self.base_url = 'https://www.po18.tw/tags/subbooks?id=23_'
+
+    def parse(self, response):
+        pass
