@@ -325,10 +325,10 @@ class PoSpider(scrapy.Spider):
                 yield scrapy.Request(next_page, callback=self.parse)
     
     def parse_detail(self, response, data):
-        data['description'] = response.css('.book_intro').get()
-        data['status'] = response.css('dd.b_statu::text').get()
-        data['wordcount'] = response.css('table.book_data:nth-child(1)>tbody>tr:nth-child(3)>td::text').get()
-        data['collectionCount'] = response.css('table.book_data:nth-child(2)>tbody>tr:nth-child(1)>td::text').get()
+        data['description'] = response.css('.book_intro').get().strip()
+        data['status'] = response.css('dd.b_statu::text').get().strip()
+        data['wordcount'] = response.css('div.table > table.book_data:nth-child(1)>tr:nth-child(3)>td::text').get()
+        data['collectionCount'] = response.css('div.table > table.book_data:nth-child(2)>tr:nth-child(1)>td::text').get()
         article_list_url = f"https://www.popo.tw/books/{data['bid'][4:]}/articles"
         yield scrapy.Request(article_list_url, callback=self.parse_list, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=data))
