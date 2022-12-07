@@ -6,7 +6,8 @@ platform_dict = {
     'jjwxc': 1,
     'changpei': 2,
     'haitang': 7,
-    'po18': 8
+    'po18': 8,
+    'popo': 12
 }
 
 db_path = '../yuri-backend/.tmp/data.db'

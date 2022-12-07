@@ -244,7 +244,7 @@ class Po18Spider(scrapy.Spider):
             item = {
                 'title': div.css('.book_name>a::text').get(),
                 'book_url': 'https://www.po18.tw' + href,
-                'bid': 'po' + re.search(r'books/(\d+)', href).group(1),
+                'bid': 'po18-' + re.search(r'books/(\d+)', href).group(1),
                 'author': div.css('.book_author>a::text').get(),
                 'author_url': 'https://www.po18.tw' + div.css('.book_author>a::attr(href)').get(),
                 'tags': [i.strip() for i in div.css('.book_tags>a.tag::text').getall()],
@@ -256,7 +256,7 @@ class Po18Spider(scrapy.Spider):
                 'searchKeyword': div.css('.intro::text').get()
             }
             item['tags'] = list(set(item['tags']))
-            item['aid'] = 'po' + item['author']
+            item['aid'] = 'po18-' + item['author']
 
             yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=item))
@@ -283,15 +283,58 @@ class Po18Spider(scrapy.Spider):
         yield data
 
 class PoSpider(scrapy.Spider):
-    name = 'po'
-    allowed_domains = ['www.po18.tw']
-    start_urls = ['https://www.po18.tw/tags/subbooks?id=23_'] #按最新章回的更新时间排序的
+    name = 'popo'
+    allowed_domains = ['www.popo.tw']
+    start_urls = ['https://www.popo.tw/cates/1/subs/7?type=latest&page=1'] #按最新章回的更新时间排序的
 
-    # https://www.popo.tw/findbooks POST
+    # https://www.popo.tw/findbooks 搜索 POST
     # tag: 23 cate: 1
+    # https://www.popo.tw/cates/1/subs/7?type=latest GET
     def __init__(self):
         self.page_count = 1
-        self.base_url = 'https://www.po18.tw/tags/subbooks?id=23_'
+        self.base_url = 'https://www.popo.tw/cates/1/subs/7?type=latest'
 
     def parse(self, response):
-        pass
+        divs = response.css('#w0.list-view>div')
+        for div in divs[:-1]:
+            book_id = div.css('::attr(data-key)').get()
+            author_href = div.css('a.author::attr(href)').get()
+            item = {
+                'title': div.css('a.bname::text').get(),
+                'book_url': 'https://www.popo.tw/books/' + book_id,
+                'bid': 'popo' + book_id,
+                'author': div.css('a.author::text').get(),
+                'author_url': 'https://www.popo.tw' + author_href,
+                'tags': [i.strip() for i in div.css('.tag-area>a::text').getall()],
+                'cover': div.css('.left img.cover-m::attr(src)').get(),
+                'style': '',
+                'type': '',
+                'publish_time': '',
+                'description': '',
+                'searchKeyword': div.css('.intro::text').get()
+            }
+            item['tags'] = list(set(item['tags']))
+            item['aid'] = 'popo-' + re.search(r'users/(\S+)', author_href).group(1)
+
+            yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
+                cb_kwargs=dict(data=item))
+            
+            if len(divs) >= 10:
+                self.page_count += 1
+                next_page = self.base_url + f'&page={self.page_count}'
+                yield scrapy.Request(next_page, callback=self.parse)
+    
+    def parse_detail(self, response, data):
+        data['description'] = response.css('.book_intro').get()
+        data['status'] = response.css('dd.b_statu::text').get()
+        data['wordcount'] = response.css('table.book_data:nth-child(1)>tbody>tr:nth-child(3)>td::text').get()
+        data['collectionCount'] = response.css('table.book_data:nth-child(2)>tbody>tr:nth-child(1)>td::text').get()
+        article_list_url = f"https://www.popo.tw/books/{data['bid'][4:]}/articles"
+        yield scrapy.Request(article_list_url, callback=self.parse_list, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
+                cb_kwargs=dict(data=data))
+    
+    def parse_list(self, response, data):
+        first_item = response.css('#w0.list-view>div:nth-child(1) .date::text').get()
+        if first_item != None:
+            data['publish_time'] = first_item.split(' ')[1]
+        yield data
