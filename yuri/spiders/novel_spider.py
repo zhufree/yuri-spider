@@ -3,7 +3,7 @@ from pyquery import PyQuery as pq
 from pyunit_time import Time
 import time, re, json
 
-# last update at 2022.11.30
+# last update at 2023.1.2
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -44,7 +44,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 15: # 根据时间修改page count
+        if len(current_page_list) >= 60 and self.page_count < 25: # 根据时间修改page count
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
@@ -89,6 +89,7 @@ class HaitangSpider(scrapy.Spider):
         # self.base_url = 'http://ebook.longmabook.com/searchlist.php?fixlangsnd=FsedAjjT6&fixlangact=edit&selsexytype=c'
 
     def parse(self, response):
+        # print(response.text)
         tds = response.css('table.uk-table tr>td')[1:]
         for td in tds:
             href = td.css('a:first-child::attr(href)').get()
@@ -160,7 +161,7 @@ class HaitangSpider(scrapy.Spider):
             data['publish_time'] = time_search.group(1)
         yield data
 
-# 默认只抓前100条 2022.11.9
+# 默认只抓前100条
 class CpSpider(scrapy.Spider):
     name = 'changpei'
     allowed_domains = ['gongzicp.com']
@@ -272,7 +273,7 @@ class Po18Spider(scrapy.Spider):
         data['wordcount'] = response.css('table.book_data>tbody>tr:nth-child(3)>td::text').get()
         data['collectionCount'] = response.css('table.book_data:nth-child(2)>tbody>tr:nth-child(1)>td::text').get()
         
-        article_list_url = f"https://www.po18.tw/books/{data['bid'][2:]}/articles"
+        article_list_url = f"https://www.po18.tw/books/{data['bid'][5:]}/articles"
         yield scrapy.Request(article_list_url, callback=self.parse_list, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=data))
 
@@ -319,7 +320,7 @@ class PoSpider(scrapy.Spider):
             yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=item))
             
-            if len(divs) >= 10:
+            if len(divs) >= 10 and self.page_count < 10:
                 self.page_count += 1
                 next_page = self.base_url + f'&page={self.page_count}'
                 yield scrapy.Request(next_page, callback=self.parse)

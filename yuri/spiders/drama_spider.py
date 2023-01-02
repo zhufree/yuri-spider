@@ -13,7 +13,7 @@ from hashlib import md5
 class FanjiaoSpider(scrapy.Spider):
     name = 'fanjiao'
     allowed_domains = ['https://api.fanjiao.co']
-    start_urls = ['https://api.fanjiao.co/walkman/api/recommend/category?cate_id=7&page={}&size=50'.format(i) for i in range(1, 11)]
+    start_urls = ['https://api.fanjiao.co/walkman/api/recommend/category?cate_id=7&page={}&size=50'.format(i) for i in range(1, 12)]
 
     def start_requests(self):
         for url in self.start_urls:
@@ -52,7 +52,7 @@ class MaoerSpider(scrapy.Spider):
     series_finished = '2'
     one_ep = '3'
     small_ep = '4'
-    current_type = '1'
+    current_type = '2'
     # 0_5_1_0_0 长篇未完结 2022.11.30
     # 0_5_2_0_0 长篇完结 8.24
     # 0_5_3_0_0 全一期 8.31
