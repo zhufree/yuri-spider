@@ -3,12 +3,12 @@ from pyquery import PyQuery as pq
 from pyunit_time import Time
 import time, re, json
 
-# last update at 2023.1.2
+# last update at 2023.1.31
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
     start_urls = [
-        # 'http://www.jjwxc.net/bookbase.php?xx3=3',
+        # 'https://www.jjwxc.net/bookbase.php?xx3=3',
         'https://www.jjwxc.net/bookbase.php?xx3=3&sortType=3' # 按发表时间
         # 'https://www.jjwxc.net/bookbase.php?xx3=3&sortType=3&page=400' # 500 开始大概是2020年的作品
     ]
@@ -19,9 +19,9 @@ class YuriSpider(scrapy.Spider):
         for tr in response.css('table.cytable tr')[1:]:
             current_novel = {
                 'author': tr.css('td:first-child>a::text').get().strip(),
-                'author_url': 'http://www.jjwxc.net/' + tr.css('td:first-child>a::attr(href)').get().strip(),
+                'author_url': 'https://www.jjwxc.net/' + tr.css('td:first-child>a::attr(href)').get().strip(),
                 'title': tr.css('td:nth-child(2)>a::text').get().strip() if tr.css('td:nth-child(2)>a::text').get() != None else '***',
-                'book_url':'http://www.jjwxc.net/' +  tr.css('td:nth-child(2)>a::attr(href)').get().strip(),
+                'book_url':'https://www.jjwxc.net/' +  tr.css('td:nth-child(2)>a::attr(href)').get().strip(),
                 'type': tr.css('td:nth-child(3)::text').get().strip(),  # 原创-百合-近代现代-爱情
                 'style': tr.css('td:nth-child(4)::text').get().strip(),  # 暗黑
                 'status': [i.strip() for i in tr.css('td:nth-child(5) *::text').getall() if len(i.strip()) > 0][0],
@@ -89,7 +89,6 @@ class HaitangSpider(scrapy.Spider):
         # self.base_url = 'http://ebook.longmabook.com/searchlist.php?fixlangsnd=FsedAjjT6&fixlangact=edit&selsexytype=c'
 
     def parse(self, response):
-        # print(response.text)
         tds = response.css('table.uk-table tr>td')[1:]
         for td in tds:
             href = td.css('a:first-child::attr(href)').get()
@@ -262,7 +261,7 @@ class Po18Spider(scrapy.Spider):
             yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=item))
 
-        if len(divs) == 10:
+        if len(divs) == 10 and self.page_count < 20:
             self.page_count += 1
             next_page = self.base_url + '&page={}'.format(self.page_count)
             yield scrapy.Request(next_page, callback=self.parse)
