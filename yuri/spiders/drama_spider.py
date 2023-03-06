@@ -9,6 +9,9 @@ from hashlib import md5
     "page": 1,
     "total": 491
 }
+# 3 有声书
+# 5, 6 电台
+# 7 广播剧，首页的广播剧tab，但是数据不全
 '''
 class FanjiaoSpider(scrapy.Spider):
     name = 'fanjiao'
@@ -52,7 +55,7 @@ class MaoerSpider(scrapy.Spider):
     series_finished = '2'
     one_ep = '3'
     small_ep = '4'
-    current_type = '3'
+    current_type = '2'
     # 0_5_1_0_0 长篇未完结 2022.11.30
     # 0_5_2_0_0 长篇完结 8.24
     # 0_5_3_0_0 全一期 8.31

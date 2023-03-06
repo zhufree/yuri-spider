@@ -44,7 +44,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 25: # 根据时间修改page count
+        if len(current_page_list) >= 60 and self.page_count < 30: # 根据时间修改page count
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
@@ -164,12 +164,12 @@ class HaitangSpider(scrapy.Spider):
 class CpSpider(scrapy.Spider):
     name = 'changpei'
     allowed_domains = ['gongzicp.com']
-    start_urls = ['https://webapi.gongzicp.com/novel/novelGetList?page=1&tid=17&order=-1&field=4'] # 创建时间，最新
+    start_urls = ['https://webapi.gongzicp.com/novel/novelGetList?page=1&tid=17&field=4&order=0'] # 创建时间，最新
     handle_httpstatus_list = [404]  # 处理404页面，否则将会跳过
     
     def __init__(self):
         self.page_count = 1
-        self.base_url = 'https://webapi.gongzicp.com/novel/novelGetList?page={}&tid=17&order=-1&field=4'
+        self.base_url = 'https://webapi.gongzicp.com/novel/novelGetList?page={}&tid=17&field=4&order=0'
         self.current_year = str(time.localtime().tm_year)
         self.current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
