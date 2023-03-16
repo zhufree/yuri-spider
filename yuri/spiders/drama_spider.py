@@ -12,11 +12,15 @@ from hashlib import md5
 # 3 有声书
 # 5, 6 电台
 # 7 广播剧，首页的广播剧tab，但是数据不全
+https://api.fanjiao.co/walkman/api/recommend/major?page=1&size=20&type=4 新剧速递
+https://api.fanjiao.co/walkman/api/recommend/major?page=1&size=20&type=3 精品周更
 '''
+
 class FanjiaoSpider(scrapy.Spider):
     name = 'fanjiao'
     allowed_domains = ['https://api.fanjiao.co']
-    start_urls = ['https://api.fanjiao.co/walkman/api/recommend/category?cate_id=7&page={}&size=50'.format(i) for i in range(1, 12)]
+    start_urls = ['https://api.fanjiao.co/walkman/api/recommend/category?cate_id=7&page={}&size=50'.format(i) for i in range(1, 12)]+ \
+        ['https://api.fanjiao.co/walkman/api/recommend/major?page=1&size=20&type=4', 'https://api.fanjiao.co/walkman/api/recommend/major?page=1&size=20&type=3']
 
     def start_requests(self):
         for url in self.start_urls:
@@ -40,6 +44,8 @@ class FanjiaoSpider(scrapy.Spider):
                 'playCount': i['play'],
                 'status': '更新到' + i['new_audio_name']
             }
+            if 'subtitle' in i.keys():
+                drama['subtitle'] = i['subtitle']
             if drama['up'] == '轻之声GL广播剧社':
                 drama['up'] = '轻之声广播剧社'
             if drama['up'] == '桂圆翊宝':
