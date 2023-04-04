@@ -2,7 +2,7 @@
 # level： L1/L2/L3/
 # 456编推/经典
 # type: 1-鲜花 2-新作 3-更新 4-完结 5-随机
-import requests
+import httpx
 from pyquery import PyQuery as pq
 import json
 
@@ -11,12 +11,17 @@ list_page_url = 'http://www.66rpg.com/pcchannel/t_45/SIfn06Mh484.shtml'
 api_url = 'http://www.66rpg.com/ajax/Channel/get_channel_cross?tid=12558&level={}&type={}'
 
 chengguang_items = []
-# web page
+# web page 307 error 2023.4.4
 def get_66rpg_list():
 	global chengguang_items
-	doc = pq(list_page_url)
+	doc = pq(httpx.get(list_page_url, headers={
+		'Host': 'www.66rpg.com',
+		'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
+	}).text)
+	print(doc)
 	li = doc('.classic-contentList li')
 	for l in li.items():
+		print(l)
 		name = l('.contentList-title').text()
 		if name != '' and name not in [i['name'] for i in chengguang_items]:
 			cover = l('.contentList-cover>img').attr('data-original')
@@ -36,13 +41,14 @@ def get_66rpg_list():
 			item.update(detail)
 			chengguang_items.append(item)
 
-# api
+# api 废弃，需修改 2023.4.4
 def get_66rpg_api_list():
 	global chengguang_items
 	header = {'Referer': 'http://www.66rpg.com/pcchannel/t_45/SIfn06Mh484.shtml'}
 	for l in [1, 2, 3, '456']:
 		for t in [1, 2, 3, 4, 5]:
-			res = requests.get(api_url.format(l, t), headers=header)
+			res = httpx.get(api_url.format(l, t), headers=header)
+			print(res.text)
 			data = res.json()
 			if data['status'] == 1:
 				data_list = data['data']['data']
@@ -98,5 +104,5 @@ def save_game_items():
 
 if __name__ == '__main__':
 	get_66rpg_list()
-	get_66rpg_api_list()
+	# get_66rpg_api_list()
 	save_game_items()

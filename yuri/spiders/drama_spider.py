@@ -16,9 +16,10 @@ https://api.fanjiao.co/walkman/api/recommend/major?page=1&size=20&type=4 新剧�
 https://api.fanjiao.co/walkman/api/recommend/major?page=1&size=20&type=3 精品周更
 '''
 
+# 有ip拦截 2023.4.3
 class FanjiaoSpider(scrapy.Spider):
     name = 'fanjiao'
-    allowed_domains = ['https://api.fanjiao.co']
+    # allowed_domains = ['https://api.fanjiao.co']
     start_urls = ['https://api.fanjiao.co/walkman/api/recommend/category?cate_id=7&page={}&size=50'.format(i) for i in range(1, 12)]+ \
         ['https://api.fanjiao.co/walkman/api/recommend/major?page=1&size=20&type=4', 'https://api.fanjiao.co/walkman/api/recommend/major?page=1&size=20&type=3']
 
@@ -29,7 +30,7 @@ class FanjiaoSpider(scrapy.Spider):
             headers = {
                 'signature': sign
             }
-            yield scrapy.Request(url, headers=headers ,callback=self.parse)
+            yield scrapy.Request(url, headers=headers, callback=self.parse)
 
 
     def parse(self, response):
@@ -50,10 +51,31 @@ class FanjiaoSpider(scrapy.Spider):
                 drama['up'] = '轻之声广播剧社'
             if drama['up'] == '桂圆翊宝':
                 drama['up'] = '桂圆翊宝（张宇琦）'
-            yield drama
+            if i['album_id'] < 100100:
+                yield drama
+            else:
+                audio_list_url = 'https://api.fanjiao.co/walkman/api/album/audio?album_id={}'.format(i['album_id'])
+                param = audio_list_url.split('?')[-1] + '879f30c4b1641142c6192acc23cfb733'
+                sign = md5(param.encode('utf-8')).hexdigest()
+                headers = {
+                    'signature': sign
+                }
+                time.sleep(1)
+                yield scrapy.Request(audio_list_url, headers=headers, callback=self.get_audio_list, cb_kwargs=dict(data=drama))
+    
+    # check subtitle
+    def get_audio_list(self, response, data):
+        ep_json = response.json()
+        has_sub = False
+        if 'data' in ep_json.keys() and 'audios_list' in ep_json['data'].keys():
+            for audio in ep_json['data']['audios_list']:
+                if audio['subtitle'] != '':
+                    has_sub = True
+                    break
+        data['hasSub'] = has_sub
+        yield data
 
-
-# 有ip拦截，少抓点
+# 有ip拦截，少抓点 2023.4.3
 class MaoerSpider(scrapy.Spider):
     name = 'maoer'
     # types = [1, 2, 3, 4]
@@ -61,10 +83,10 @@ class MaoerSpider(scrapy.Spider):
     series_finished = '2'
     one_ep = '3'
     small_ep = '4'
-    current_type = '2'
+    current_type = '3'
     # 0_5_1_0_0 长篇未完结 2022.11.30
-    # 0_5_2_0_0 长篇完结 8.24
-    # 0_5_3_0_0 全一期 8.31
+    # 0_5_2_0_0 长篇完结 2023.3.6
+    # 0_5_3_0_0 全一期 8.31 2023.4.3
     # 0_5_4_0_0 微小剧 2022.11.2 无数据
     start_urls = [f'https://www.missevan.com/dramaapi/filter?filters=0_5_{current_type}_0_0&page=1&order=1&page_size=50']
     page_count = 1
@@ -122,4 +144,85 @@ class MaoerSpider(scrapy.Spider):
             ep_json = response.json()
             if 'info' in ep_json and 'user' in ep_json['info']:
                 data['up'] = ep_json['info']['user']['username']
+        yield data
+
+# tingji spider
+# 76 2023.4.3
+class TingjiSpider(scrapy.Spider):
+    name = 'tingji'
+    allowed_domains = ['www.himehear.com']  # Replace with the actual domain
+    start_urls = ['https://www.himehear.com/tjapp/v1/works/list?category=drama&pageNum=1&pageSize=100&radioType=bh']  # Replace with the actual start URL
+    cdn_prefix = 'https://tingjifm-pub.oss-cn-shenzhen.aliyuncs.com/'
+    pageIndex = 1
+
+    def parse(self, response):
+        res_json = response.json()
+        for i in res_json['result']:
+            # "radioState": 1 更新中, 2 已完结
+            # "needFee": 1 免费 2,付费
+            drama = {
+                'name': i['radioDramaName'],
+                'adid': i['id'],
+                'intro': i['introduction'],
+                'cover': self.cdn_prefix + i['radioImg'],
+                'up': i['studioName'],
+                'playCount': i['listenedCount'],
+                'status': '更新中' if i['radioState'] == 1 else "已完结",
+                'isCommercial': True if i['needFee'] == 2 else False,
+            }
+            audio_list_url = 'https://www.himehear.com/tjapp/v1/works/drama/detail?radioId={}'.format(i['id'])
+            yield scrapy.Request(audio_list_url, callback=self.parse_detail, cb_kwargs=dict(data=drama))
+    # parse detail
+    def parse_detail(self, response, data):
+        ep_json = response.json()
+        has_sub = False
+        if ep_json['code'] == 0 and 'partDramas' in ep_json['result'].keys():
+            for audio in ep_json['result']['partDramas']:
+                if 'subtitlePath' in audio.keys():
+                    has_sub = True
+                    break
+        data['hasSub'] = has_sub
+        yield data
+
+
+# Manbo spider
+class ManboSpider(scrapy.Spider):
+    name = 'manbo'
+    page = 1
+    # Add allowed_domains and start_urls according to the actual domain and start URL
+    start_urls = ['https://api.kilamanbo.com/api/v389/radio/drama/aggregation/content?categoryId=1&endStatus=0&labelId=691358&pageNo=1&pageSize=200&payType=0&sort=1']
+    base_url = 'https://api.kilamanbo.com/api/v389/radio/drama/aggregation/content?categoryId=1&endStatus=0&labelId=691358&pageSize=200&payType=0&sort=1' #&pageNo=1
+    
+    def parse(self, response):
+        res_json = response.json()
+        for i in res_json['b']['radioDramaRespList']:
+            # "endStatus": 1 完结 2连载
+            # "payType": 1 免费 2 付费 3 会员免费
+            drama = {
+                'name': i['title'],
+                'adid': i['radioDramaId'],
+                'intro': i['desc'],
+                'cover': i['coverPic'],
+                'up': i['ownerResp']['nickname'],
+                'status': '已完结' if i['endStatus'] == 1 else '连载中',
+                'isCommercial': False if i['payType'] == 1 else True,
+            }
+            audio_list_url = 'https://manbo.hongdoulive.com/web_manbo/dramaDetail?dramaId={}'.format(i['radioDramaId'])
+            yield scrapy.Request(audio_list_url, callback=self.parse_detail, cb_kwargs=dict(data=drama))
+        if len(res_json['b']['radioDramaRespList']) == 200:
+            self.page += 1
+            next_page_url = self.base_url + f'&pageNo={self.page}'
+            yield scrapy.Request(next_page_url, callback=self.parse)
+
+    def parse_detail(self, response, data):
+        detail_json = response.json()
+        has_sub = False
+        if detail_json['code'] == 200:
+            data['playCount'] = detail_json['data']['watchCount']
+            data['publishTime'] = detail_json['data']['createTime'] # timestamp
+            for audio in detail_json['data']['setRespList']:
+                if audio['setLrcUrl'] != '':
+                    has_sub = True
+                    break
+        data['hasSub'] = has_sub
         yield data

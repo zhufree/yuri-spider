@@ -1,13 +1,69 @@
-import scrapy
+import scrapy, json
 
-# useless
+# 2023.4.4
 class BiliSpider(scrapy.Spider):
     name = 'bili'
     allowed_domains = ['manga.bilibili.com']
-    start_urls = ['https://manga.bilibili.com/classify#/?from=manga_homepage&styles=1006&areas=1&orders=3']
+    start_urls = ['https://manga.bilibili.com/twirp/comic.v1.Comic/ClassPage']
+    data = {
+        "isFree" : -1,
+        "areaId" : 1, # 大陆
+        "orientation" : 0,
+        "pageNum" : 1,
+        "tagId" : 1369,
+        "comicIdFrom" : 27287,
+        "type" : -1,
+        "styleId" : -1,
+        "order" : 0,
+        "isRookie" : False,
+        "isFinish" : -1,
+        "pageSize" : 50
+    }
 
+    def start_requests(self):
+        # Send a POST request with the data
+        yield scrapy.Request(
+            url=self.start_urls[0],
+            method='POST',
+            body=json.dumps(self.data),
+            headers={'Content-Type':'application/json'},
+            callback=self.parse
+        )
     def parse(self, response):
-        pass
+        list_json = response.json()
+        if list_json['code'] == 0:
+            for i in list_json['data']:
+                manhua = {
+                    'mId': f'mc{i["season_id"]}',
+                    'name': i['title'],
+                    'url': f'https://manga.bilibili.com/detail/{i["season_id"]}',
+                    'cover': i['horizontal_cover'],
+                    # 'authorName': i.css('.author::text').get().strip(),
+                    'platform': 9
+                }
+                detail_url = 'https://manga.bilibili.com/twirp/comic.v1.Comic/ComicDetail?device=pc'
+                yield scrapy.Request(
+                    url=detail_url,
+                    method='POST',
+                    body=json.dumps({'comic_id': i["season_id"]}),
+                    headers={'Content-Type':'application/json'},
+                    callback=self.parse_detail,
+                    cb_kwargs=dict(data=manhua)
+                )
+
+    def parse_detail(self, response, data):
+        detail_json = response.json()
+        if detail_json['code'] == 0:
+            manhua = detail_json['data']
+            data['authorName'] = '/'.join(manhua['author_name'])
+            if manhua['release_time'] != '' and len(manhua['release_time']) > 4:
+                data['publishTime'] = manhua['release_time'].replace('.', '-')
+            else:
+                publish_time = ''
+                if 'ep_list' in manhua.keys() and len(manhua['ep_list']) > 0:
+                    publish_time = manhua['ep_list'][-1]['pub_time']
+                data['publishTime'] = publish_time
+        yield data
 
 # 2022.11.9
 class KuaikanSpider(scrapy.Spider):

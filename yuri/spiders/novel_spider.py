@@ -1,9 +1,8 @@
 import scrapy
-from pyquery import PyQuery as pq
 from pyunit_time import Time
 import time, re, json
 
-# last update at 2023.1.31
+# last update at 2023.4.3
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -261,7 +260,7 @@ class Po18Spider(scrapy.Spider):
             yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=item))
 
-        if len(divs) == 10 and self.page_count < 20:
+        if len(divs) == 10 and self.page_count < 10:
             self.page_count += 1
             next_page = self.base_url + '&page={}'.format(self.page_count)
             yield scrapy.Request(next_page, callback=self.parse)
@@ -319,7 +318,7 @@ class PoSpider(scrapy.Spider):
             yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=item))
             
-            if len(divs) >= 10 and self.page_count < 10:
+            if len(divs) >= 10 and self.page_count < 5:
                 self.page_count += 1
                 next_page = self.base_url + f'&page={self.page_count}'
                 yield scrapy.Request(next_page, callback=self.parse)

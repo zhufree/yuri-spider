@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "yuri-spider"
+version = "0.1.0"
+description = ""
+authors = ["zhufree <zhufree2013@gmail.com>"]
+readme = "README.md"
+packages = [{include = "yuri_spider"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Scrapy = "^2.8.0"
+pyunit-time = "^2021.2.2"
+pyquery = "^2.0.0"
+httpx = "^0.23.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
