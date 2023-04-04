@@ -38,8 +38,8 @@ class BiliSpider(scrapy.Spider):
                     'name': i['title'],
                     'url': f'https://manga.bilibili.com/detail/{i["season_id"]}',
                     'cover': i['horizontal_cover'],
-                    # 'authorName': i.css('.author::text').get().strip(),
-                    'platform': 9
+                    'platform': 9,
+                    'status': i['bottom_info']
                 }
                 detail_url = 'https://manga.bilibili.com/twirp/comic.v1.Comic/ComicDetail?device=pc'
                 yield scrapy.Request(
@@ -55,6 +55,7 @@ class BiliSpider(scrapy.Spider):
         detail_json = response.json()
         if detail_json['code'] == 0:
             manhua = detail_json['data']
+            data['intro'] = manhua['evaluate']
             data['authorName'] = '/'.join(manhua['author_name'])
             if manhua['release_time'] != '' and len(manhua['release_time']) > 4:
                 data['publishTime'] = manhua['release_time'].replace('.', '-')

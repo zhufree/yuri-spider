@@ -6,6 +6,7 @@ platform_dict = {
     'fanjiao': 3,
     'maoer': 4,
     'manbo': 5,
+    'tingji': 6
 }
 
 db_path = '../yuri-backend/.tmp/data.db'
@@ -19,11 +20,17 @@ def clear_data(platform):
         lines.sort(key=lambda line: json.loads(line)['adid'])
         lines.reverse()
         for l in lines:
-            if json.loads(l)['name'] not in name_list:
-                name_list.append(json.loads(l)['name'])
-                result_list.append(l)
-            else:
-                print('already exist, change to newer one')
+            if platform  == 'maoer':
+                if json.loads(l)['name'] not in name_list :
+                    name_list.append(json.loads(l)['name'])
+                    result_list.append(l)
+                else:
+                    print(json.loads(l)['name'] + '重名 removed.')
+            elif platform  == 'manbo':
+                if '侵删' not in json.loads(l)['intro']:
+                    result_list.append(l)
+                else:
+                    print(json.loads(l)['name'] + '搬运 removed.')
         print(len(result_list))
     with open("{}-items.json".format(platform), 'w', encoding='utf-8') as f:
         f.writelines(result_list)
@@ -97,6 +104,8 @@ def play_count_key(platform):
         return 'mr_play_count'
     elif platform == 'manbo':
         return 'mb_play_count'
+    elif platform == 'tingji':
+        return 'tj_play_count'
 
 def get_platform_id(platform):
     if platform == 'fanjiao':
@@ -105,9 +114,11 @@ def get_platform_id(platform):
         return 'mr_id'
     elif platform == 'manbo':
         return 'mb_id'
+    elif platform == 'tingji':
+        return 'tj_id'
 
 def save_dramas(platform):
-    print('更新drama')
+    print('更新audio at ' + platform)
     up_id_dict = get_up_and_id()
     old_drama_id_dict = get_drama_platform_id_and_id(platform)
     old_drama_name_dict = get_drama_name_and_id()
@@ -123,10 +134,10 @@ def save_dramas(platform):
                 up_id = None
             sql = ''
             try:
-                update_data = "intro = '{}', cover = '{}', status = '{}', {} = {}, {} = {}".format(
-                        l['intro'].replace("'", '|') if l['intro'] != None else '', 
-                        l['cover'], l['status'], play_count_key(platform),
-                        int(l['playCount']) if l['playCount'] != None else -1, 
+                has_sub = l['hasSub'] if 'hasSub' in l.keys() else False
+                update_data = '''cover = '{}', status = "{}", is_commercial = {}, has_sub = {}, {} = {}, {} = {}'''.format(
+                        l['cover'], l['status'].replace('"', '|'), l['isCommercial'],has_sub,
+                        play_count_key(platform), int(l['playCount']) if l['playCount'] != None else -1, 
                         get_platform_id(platform), int(l['adid']) if l['adid'] != None else 0)
                 if l['adid'] in old_drama_id_dict.keys() or l['name'] in old_drama_name_dict.keys():
                     # adid和name两种方式更新，旧数据可能没有adid，但可以通过name找到，adid有了之后的更新就可以通过adid
@@ -136,9 +147,10 @@ def save_dramas(platform):
                         sql = "UPDATE audio_dramas SET {} WHERE name = '{}'".format(update_data, l['name'])
                     cursor.execute(sql)
                     cursor.execute(f"SELECT id FROM audio_dramas WHERE {get_platform_id(platform)} = {l['adid']};")
-                    drama_id = cursor.fetchone()[0]
+                    fetch_result = cursor.fetchone()
+                    drama_id = fetch_result[0]
                     # update up
-                    if up_id:
+                    if up_id and platform != 'manbo':
                         cursor.execute(f'SELECT * FROM audio_dramas_up_links WHERE audio_drama_id = {drama_id}')
                         exist_link = cursor.fetchall()
                         if len(exist_link) > 0:
@@ -147,9 +159,9 @@ def save_dramas(platform):
                             cursor.execute('''INSERT INTO audio_dramas_up_links (audio_drama_id, audio_staff_id) VALUES (?, ?)''', 
                             (drama_id, up_id))
                 else:
-                    sql = '''INSERT INTO audio_dramas (name, intro, cover, status, {}, {}) VALUES (?,?,?,?,?,?)'''\
+                    sql = '''INSERT INTO audio_dramas (name, intro, cover, status, is_commercial, has_sub, {}, {}) VALUES (?,?,?,?,?,?,?,?)'''\
                         .format(play_count_key(platform), get_platform_id(platform))
-                    cursor.execute(sql, (l['name'], l['intro'], l['cover'], l['status'], l['playCount'], l['adid']))
+                    cursor.execute(sql, (l['name'], l['intro'], l['cover'], l['status'],l['isCommercial'], has_sub, l['playCount'], l['adid']))
                     # add audio_drama up link
                     if up_id:
                         cursor.execute('''INSERT OR IGNORE INTO audio_dramas_up_links (audio_drama_id, audio_staff_id) VALUES (?, ?)''', 
@@ -157,7 +169,7 @@ def save_dramas(platform):
             except Exception as e:
                 print(sql)
                 print(e)
-                raise e
+                raise(e)
             
         connect.commit()
         connect.close()
@@ -181,7 +193,7 @@ def add_platforms(platform):
         lines = f.readlines()
         for line in lines:
             item = json.loads(line)
-            drama_id = drama_id_dict[item['adid']] # get drama id
+            drama_id = drama_id_dict[(item['adid'] if platform != 'manbo' else str(item['adid']))] # get drama id, mbid is str
             platform_id = platform_dict[platform]
             if drama_id not in drama_platform_dict.keys() or platform_id not in drama_platform_dict[drama_id]:
                 # check if the drama and platform connection exist
@@ -192,8 +204,12 @@ def add_platforms(platform):
 
 
 if __name__ == '__main__':
-    for p in ['maoer', 'fanjiao']:
-        if p == 'maoer':
+    for p in [
+        'maoer', 
+        'fanjiao', 
+        'manbo', 'tingji'
+        ]:
+        if p == 'maoer' or p == 'manbo':
             clear_data(p)
         save_ups(p)
         save_dramas(p)

@@ -43,7 +43,8 @@ class FanjiaoSpider(scrapy.Spider):
                 'cover': i['square'],
                 'up': i['up_name'],
                 'playCount': i['play'],
-                'status': '更新到' + i['new_audio_name']
+                'status': '更新到' + i['new_audio_name'],
+                'isCommercial': True if i['price'] > 0 else False
             }
             if 'subtitle' in i.keys():
                 drama['subtitle'] = i['subtitle']
@@ -108,6 +109,7 @@ class MaoerSpider(scrapy.Spider):
                 'adid': i['id'],
                 'cover': i['cover'],
                 'status': self.get_status(i['integrity']) + '|' + i['newest'],
+                'isCommercial': False if i['pay_type'] == 0 else True
             }
             yield scrapy.Request('https://www.missevan.com/dramaapi/getdrama?drama_id={}'.format(i['id']), self.get_drama, 
                 cb_kwargs=dict(data=drama))
@@ -157,6 +159,7 @@ class TingjiSpider(scrapy.Spider):
 
     def parse(self, response):
         res_json = response.json()
+        print(len(res_json['result']))
         for i in res_json['result']:
             # "radioState": 1 更新中, 2 已完结
             # "needFee": 1 免费 2,付费
@@ -168,7 +171,7 @@ class TingjiSpider(scrapy.Spider):
                 'up': i['studioName'],
                 'playCount': i['listenedCount'],
                 'status': '更新中' if i['radioState'] == 1 else "已完结",
-                'isCommercial': True if i['needFee'] == 2 else False,
+                'isCommercial': True if ('needFee' in i.keys() and i['needFee']) == 2 else False,
             }
             audio_list_url = 'https://www.himehear.com/tjapp/v1/works/drama/detail?radioId={}'.format(i['id'])
             yield scrapy.Request(audio_list_url, callback=self.parse_detail, cb_kwargs=dict(data=drama))
@@ -205,7 +208,7 @@ class ManboSpider(scrapy.Spider):
                 'cover': i['coverPic'],
                 'up': i['ownerResp']['nickname'],
                 'status': '已完结' if i['endStatus'] == 1 else '连载中',
-                'isCommercial': False if i['payType'] == 1 else True,
+                'isCommercial': True if i['payType'] == 1 else False,
             }
             audio_list_url = 'https://manbo.hongdoulive.com/web_manbo/dramaDetail?dramaId={}'.format(i['radioDramaId'])
             yield scrapy.Request(audio_list_url, callback=self.parse_detail, cb_kwargs=dict(data=drama))
