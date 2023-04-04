@@ -139,7 +139,7 @@ def save_dramas(platform):
                         l['cover'], l['status'].replace('"', '|'), l['isCommercial'],has_sub,
                         play_count_key(platform), int(l['playCount']) if l['playCount'] != None else -1, 
                         get_platform_id(platform), int(l['adid']) if l['adid'] != None else 0)
-                if l['adid'] in old_drama_id_dict.keys() or l['name'] in old_drama_name_dict.keys():
+                if l['adid'] in old_drama_id_dict.keys() or str(l['adid']) in old_drama_id_dict.keys() or l['name'] in old_drama_name_dict.keys():
                     # adid和name两种方式更新，旧数据可能没有adid，但可以通过name找到，adid有了之后的更新就可以通过adid
                     if l['adid'] in old_drama_id_dict.keys():
                         sql = "UPDATE audio_dramas SET {} WHERE {} = {}".format(update_data, get_platform_id(platform), l['adid'])
