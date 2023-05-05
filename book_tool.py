@@ -139,7 +139,7 @@ def save_books(platform):
                         l['style'], l['type'], l['status'], l['publish_time'], 
                         int(l['wordcount']) if ('wordcount' in l.keys() and l['wordcount'] != None) else -1, 
                         int(l['collectionCount']) if l['collectionCount'] != None else -1, 
-                        l['searchKeyword'].replace("'", '|') if ('searchKeyword' in l.keys() and l['searchKeyword'] != None) != None else '')
+                        l['searchKeyword'].replace("'", '|') if ('searchKeyword' in l.keys() and l['searchKeyword'] != None) else '')
                     sql = "UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid'])
                     cursor.execute("UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid']))
                     book_id = old_book_id_dict[l['bid']]
@@ -202,11 +202,11 @@ def add_tags(platform):
 
 if __name__ == '__main__':
     platforms = [
-        'jjwxc',
-        'changpei',
-        'haitang',
-        'po18',
-        'popo',
+        # 'jjwxc',
+        # 'changpei',
+        # 'haitang',
+        # 'po18',
+        # 'popo',
         'yamibo'
     ]
     for p in platforms:
