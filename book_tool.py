@@ -7,7 +7,8 @@ platform_dict = {
     'changpei': 2,
     'haitang': 7,
     'po18': 8,
-    'popo': 12
+    'popo': 12,
+    'yamibo': 14
 }
 
 db_path = '../yuri-backend/.tmp/data.db'
@@ -136,9 +137,9 @@ def save_books(platform):
                     collection_count = {}, search_keyword = '{}'".format(
                         l['title'].replace("'", '|'), l['bid'], l['book_url'], l['cover'], l['description'].replace("'", '|'), \
                         l['style'], l['type'], l['status'], l['publish_time'], 
-                        int(l['wordcount']) if l['wordcount'] != None else -1, 
+                        int(l['wordcount']) if ('wordcount' in l.keys() and l['wordcount'] != None) else -1, 
                         int(l['collectionCount']) if l['collectionCount'] != None else -1, 
-                        l['searchKeyword'].replace("'", '|') if l['searchKeyword'] != None else '')
+                        l['searchKeyword'].replace("'", '|') if ('searchKeyword' in l.keys() and l['searchKeyword'] != None) != None else '')
                     sql = "UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid'])
                     cursor.execute("UPDATE books SET {} WHERE bid = '{}'".format(update_data, l['bid']))
                     book_id = old_book_id_dict[l['bid']]
@@ -149,9 +150,9 @@ def save_books(platform):
                         wordcount, collection_count, search_keyword) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',
                         (l['title'].replace("'", '|'), l['bid'], l['book_url'], l['cover'], l['description'].replace("'", '|'), l['style'], l['type'], l['status'],
                         l['publish_time'],
-                        int(l['wordcount']) if l['wordcount'] != None else -1, 
+                        int(l['wordcount']) if ('wordcount' in l.keys() and l['wordcount'] != None) else -1, 
                         int(l['collectionCount']) if l['collectionCount'] != None else -1,
-                        l['searchKeyword']))
+                        l['searchKeyword'].replace("'", '|') if ('searchKeyword' in l.keys() and l['searchKeyword'] != None) else ''))
                     book_id = cursor.lastrowid
                     # insert author link and platform link
                     cursor.execute(f'INSERT INTO books_author_links (book_id, author_id) VALUES (?,?)', (book_id, author_id))
@@ -205,7 +206,8 @@ if __name__ == '__main__':
         'changpei',
         'haitang',
         'po18',
-        'popo'
+        'popo',
+        'yamibo'
     ]
     for p in platforms:
         save_author(p)

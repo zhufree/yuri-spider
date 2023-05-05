@@ -2,7 +2,7 @@ import scrapy
 from pyunit_time import Time
 import time, re, json
 
-# last update at 2023.4.3
+# last update at 2023.5.5 po18 未更新，百合会未抓全
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -43,7 +43,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 30: # 根据时间修改page count
+        if len(current_page_list) >= 60 and self.page_count < 20: # 根据时间修改page count
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
@@ -336,4 +336,102 @@ class PoSpider(scrapy.Spider):
         first_item = response.css('#w0.list-view>div:nth-child(1) .date::text').get()
         if first_item != None:
             data['publish_time'] = first_item.split(' ')[1]
+        yield data
+
+
+class NUSpider(scrapy.Spider):
+    name = 'nu'
+    start_urls = ['https://www.novelupdates.com/series-finder/?sf=1&org=495&nt=2444&gi=922&mgi=and&sort=sdate&order=desc']
+    page_count = 0
+    def parse(self, response):
+        current_page_list = []
+        for div in response.css('.search_main_box_nu'):
+            current_novel = {
+                'title': div.css('.search_title>a::text').get().strip(),
+                'nu_url': div.css('.search_title>a::attr(href)').get(),
+                'updated_chapters': div.css('.ss_desk:first-child::text').get().strip().split(' ')[0],
+                'updates_frequency': div.css('.ss_desk:nth-child(2)::text').get().strip().split(' ')[1],
+                'readers': div.css('.ss_desk:nth-child(3)::text').get().strip().split(' ')[0],
+                'reviews': div.css('.ss_desk:nth-child(4)::text').get().strip().split(' ')[0],
+                'last_update_time': div.css('.ss_desk:nth-child(5)::text').get().strip(),
+                'genres': div.css('.search_genre>a::text').getall(),
+                'rating': div.css('.search_ratings::text').get().strip()[1:-1],
+            }
+            current_page_list.append(current_novel)
+            # open novel page for more info
+            yield scrapy.Request(current_novel['nu_url'], self.parse_detail, 
+                cb_kwargs=dict(data=current_novel))
+            # yield current_novel
+
+        # next page
+        next_page = response.css('a.next_page::attr(href)').get()
+        if len(current_page_list) >= 25 and self.page_count < 9: # 根据时间修改page count
+            next_page = response.urljoin(next_page)
+            self.page_count += 1
+            yield scrapy.Request(next_page, callback=self.parse)
+
+    def parse_detail(self, response, data):
+        data['associated_names'] = response.css('#editassociated::text').getall()
+        data['tags'] = response.css('#showtags > a::text').getall()
+        data['authors'] = response.css('#showauthors > a::text').getall()
+        publisher = response.css('#showopublisher > a::text').get()
+        data['platform'] = publisher.strip() if publisher else None
+        translated = response.css('#showtranslated::text').get()
+        print('(' + translated.strip() + ')')
+        data['complete_translated'] = translated.strip() if translated.strip() != '' else response.css('#showtranslated > a::text').get()
+        yield data
+
+
+class YamiboSpider(scrapy.Spider):
+    name = 'yamibo'
+    allowed_domains = ['www.yamibo.com']
+    start_urls = ['https://www.yamibo.com/novel/list?q=1']
+    page_count = 0
+
+    def parse(self, response):
+        current_page_list = []
+        for tr in response.css('#w0 > table.table-hover tbody tr'):
+            current_novel = {
+                'title': tr.css('td:nth-child(2)>a::text').get().strip(),
+                'bid': f"ymb{tr.css('::attr(data-key)').get()}",
+                'book_url':'https://www.yamibo.com' +  tr.css('td:nth-child(2)>a::attr(href)').get().strip(),
+                'author': tr.css('td:nth-child(3)>a::text').get().strip(),
+                'author_url': 'https://www.yamibo.com' + tr.css('td:nth-child(3)>a::attr(href)').get().strip(),
+                'status': tr.css('td:nth-child(5)::text').get().strip(),
+                'style': '',
+                'type': '',
+            }
+            if '完' in current_novel['status']:
+                current_novel['status'] = '完结'
+            elif current_novel['status'] == '暂停':
+                current_novel['status'] = '断更'
+            elif current_novel['status'] == '连载中':
+                current_novel['status'] = '连载'
+            current_novel['aid'] = 'ymb' + current_novel['author_url'].split('=')[-1]
+            current_page_list.append(current_novel)
+            # open novel page for more info
+            yield scrapy.Request(current_novel['book_url'], self.parse_detail, 
+                cb_kwargs=dict(data=current_novel))
+            # yield current_novel
+
+        # next page
+        next_page = response.css('li.next > a::attr(href)').get()
+        if len(current_page_list) >= 50:
+            next_page = response.urljoin(next_page)
+            self.page_count += 1
+            yield scrapy.Request(next_page, callback=self.parse)
+
+    def parse_detail(self, response, data):
+        info_div = response.css('.panel-body>.row>.col-md-9>.row:nth-child(2)')
+        data['publish_time'] = info_div.css('.col-md-9 > p:nth-child(3)::text').get().split('：')[1]
+        data['tags'] = info_div.css('.col-md-9 a.label::text').getall()
+        collection_count = info_div.css('.col-md-3>p:nth-child(2)::text').get()
+        if collection_count != None:
+            data['collectionCount'] = collection_count.split('：')[1]
+        else:
+            data['collectionCount'] = '0'
+        desc = response.css('#w0-collapse1 .panel-body::text').get()
+        data['description'] = desc if desc != None else ''
+        cover = response.css('.panel-body>.row>.col-md-3>img.img-responsive::attr(src)').get()
+        data['cover'] = 'https://www.yamibo.com' + cover if cover != None else ''
         yield data
