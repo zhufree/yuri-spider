@@ -205,9 +205,9 @@ def add_platforms(platform):
 
 if __name__ == '__main__':
     for p in [
-        'maoer', 
+        'maoer',  'tingji',
         'fanjiao', 
-        'manbo', 'tingji'
+        'manbo'
         ]:
         if p == 'maoer' or p == 'manbo':
             clear_data(p)

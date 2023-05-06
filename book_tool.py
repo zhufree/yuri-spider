@@ -202,11 +202,11 @@ def add_tags(platform):
 
 if __name__ == '__main__':
     platforms = [
-        # 'jjwxc',
-        # 'changpei',
-        # 'haitang',
-        # 'po18',
-        # 'popo',
+        'jjwxc',
+        'changpei',
+        'haitang',
+        'po18',
+        'popo',
         'yamibo'
     ]
     for p in platforms:

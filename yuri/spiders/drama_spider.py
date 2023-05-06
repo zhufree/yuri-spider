@@ -43,7 +43,6 @@ class FanjiaoSpider(scrapy.Spider):
                 'cover': i['square'],
                 'up': i['up_name'],
                 'playCount': i['play'],
-                'status': '更新到' + i['new_audio_name'],
                 'isCommercial': True if i['price'] > 0 else False
             }
             if 'subtitle' in i.keys():
@@ -52,17 +51,17 @@ class FanjiaoSpider(scrapy.Spider):
                 drama['up'] = '轻之声广播剧社'
             if drama['up'] == '桂圆翊宝':
                 drama['up'] = '桂圆翊宝（张宇琦）'
-            if i['album_id'] < 100100:
-                yield drama
-            else:
-                audio_list_url = 'https://api.fanjiao.co/walkman/api/album/audio?album_id={}'.format(i['album_id'])
-                param = audio_list_url.split('?')[-1] + '879f30c4b1641142c6192acc23cfb733'
-                sign = md5(param.encode('utf-8')).hexdigest()
-                headers = {
-                    'signature': sign
-                }
-                time.sleep(1)
-                yield scrapy.Request(audio_list_url, headers=headers, callback=self.get_audio_list, cb_kwargs=dict(data=drama))
+            # if i['album_id'] < 100100:
+            #     yield drama
+            # else:
+            audio_list_url = 'https://api.fanjiao.co/walkman/api/album/audio?album_id={}'.format(i['album_id'])
+            param = audio_list_url.split('?')[-1] + '879f30c4b1641142c6192acc23cfb733'
+            sign = md5(param.encode('utf-8')).hexdigest()
+            headers = {
+                'signature': sign
+            }
+            time.sleep(1)
+            yield scrapy.Request(audio_list_url, headers=headers, callback=self.get_audio_list, cb_kwargs=dict(data=drama))
     
     # check subtitle
     def get_audio_list(self, response, data):
@@ -74,6 +73,7 @@ class FanjiaoSpider(scrapy.Spider):
                     has_sub = True
                     break
         data['hasSub'] = has_sub
+        data['status'] = ep_json['data']['update_frequency']
         yield data
 
 # 有ip拦截，少抓点 2023.4.3
@@ -84,11 +84,11 @@ class MaoerSpider(scrapy.Spider):
     series_finished = '2'
     one_ep = '3'
     small_ep = '4'
-    current_type = '3'
+    current_type = '1'
     # 0_5_1_0_0 长篇未完结 2022.11.30
     # 0_5_2_0_0 长篇完结 2023.3.6
     # 0_5_3_0_0 全一期 8.31 2023.4.3
-    # 0_5_4_0_0 微小剧 2022.11.2 无数据
+    # 0_5_4_0_0 微小剧 2023.5.6 无数据
     start_urls = [f'https://www.missevan.com/dramaapi/filter?filters=0_5_{current_type}_0_0&page=1&order=1&page_size=50']
     page_count = 1
     base_url = f'https://www.missevan.com/dramaapi/filter?filters=0_5_{current_type}_0_0&order=1&page_size=50'
@@ -210,6 +210,8 @@ class ManboSpider(scrapy.Spider):
                 'status': '已完结' if i['endStatus'] == 1 else '连载中',
                 'isCommercial': True if i['payType'] == 1 else False,
             }
+            if i['radioDramaId'] == 1625353566539481246:
+                drama['name'] = i['title'] + '（概念先导）'
             audio_list_url = 'https://manbo.hongdoulive.com/web_manbo/dramaDetail?dramaId={}'.format(i['radioDramaId'])
             yield scrapy.Request(audio_list_url, callback=self.parse_detail, cb_kwargs=dict(data=drama))
         if len(res_json['b']['radioDramaRespList']) == 200:
