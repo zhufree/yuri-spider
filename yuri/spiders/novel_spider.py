@@ -43,7 +43,7 @@ class YuriSpider(scrapy.Spider):
 
         # next page
         next_page = response.css('div#pageArea a:nth-child(3)::attr(href)').get()
-        if len(current_page_list) >= 60 and self.page_count < 20: # 根据时间修改page count
+        if len(current_page_list) >= 60 and self.page_count < 50: # 根据时间修改page count
             next_page = response.urljoin(next_page)
             self.page_count += 1
             yield scrapy.Request(next_page, callback=self.parse)
