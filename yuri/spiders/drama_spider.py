@@ -16,7 +16,7 @@ https://api.fanjiao.co/walkman/api/recommend/major?page=1&size=20&type=4 新剧�
 https://api.fanjiao.co/walkman/api/recommend/major?page=1&size=20&type=3 精品周更
 '''
 
-# 有ip拦截 2023.4.3
+# 有ip拦截 2023.7.12
 class FanjiaoSpider(scrapy.Spider):
     name = 'fanjiao'
     # allowed_domains = ['https://api.fanjiao.co']
@@ -76,7 +76,7 @@ class FanjiaoSpider(scrapy.Spider):
         data['status'] = ep_json['data']['update_frequency']
         yield data
 
-# 有ip拦截，少抓点 2023.4.3
+# 有ip拦截，少抓点 2023.7.12
 class MaoerSpider(scrapy.Spider):
     name = 'maoer'
     # types = [1, 2, 3, 4]
@@ -149,7 +149,7 @@ class MaoerSpider(scrapy.Spider):
         yield data
 
 # tingji spider
-# 76 2023.4.3
+# 76 2023.7.18
 class TingjiSpider(scrapy.Spider):
     name = 'tingji'
     allowed_domains = ['www.himehear.com']  # Replace with the actual domain
@@ -189,6 +189,7 @@ class TingjiSpider(scrapy.Spider):
 
 
 # Manbo spider
+# 2023.7.18
 class ManboSpider(scrapy.Spider):
     name = 'manbo'
     page = 1
@@ -201,19 +202,27 @@ class ManboSpider(scrapy.Spider):
         for i in res_json['b']['radioDramaRespList']:
             # "endStatus": 1 完结 2连载
             # "payType": 1 免费 2 付费 3 会员免费
-            drama = {
-                'name': i['title'],
-                'adid': i['radioDramaId'],
-                'intro': i['desc'],
-                'cover': i['coverPic'],
-                'up': i['ownerResp']['nickname'],
-                'status': '已完结' if i['endStatus'] == 1 else '连载中',
-                'isCommercial': True if i['payType'] == 1 else False,
-            }
-            if i['radioDramaId'] == 1625353566539481246:
-                drama['name'] = i['title'] + '（概念先导）'
-            audio_list_url = 'https://manbo.hongdoulive.com/web_manbo/dramaDetail?dramaId={}'.format(i['radioDramaId'])
-            yield scrapy.Request(audio_list_url, callback=self.parse_detail, cb_kwargs=dict(data=drama))
+            labels =  i['categoryLabels']
+            drop = False
+            for l in labels:
+                if l['name'] == '言情' or l['name'] == '纯爱':
+                    drop = True
+            if drop == False:
+                drama = {
+                    'name': i['title'],
+                    'adid': i['radioDramaId'],
+                    'intro': i['desc'],
+                    'cover': i['coverPic'],
+                    'up': i['ownerResp']['nickname'],
+                    'status': '已完结' if i['endStatus'] == 1 else '连载中',
+                    'isCommercial': True if i['payType'] == 1 else False,
+                }
+                if i['radioDramaId'] == 1625353566539481246:
+                    drama['name'] = i['title'] + '（概念先导）'
+                if i['radioDramaId'] == 1505735098098516062:
+                    drama['name'] = i['title'] + '（UP：Sado阳光）'
+                audio_list_url = 'https://manbo.hongdoulive.com/web_manbo/dramaDetail?dramaId={}'.format(i['radioDramaId'])
+                yield scrapy.Request(audio_list_url, callback=self.parse_detail, cb_kwargs=dict(data=drama))
         if len(res_json['b']['radioDramaRespList']) == 200:
             self.page += 1
             next_page_url = self.base_url + f'&pageNo={self.page}'
