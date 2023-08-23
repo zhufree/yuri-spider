@@ -2,7 +2,7 @@ import scrapy
 from pyunit_time import Time
 import time, re, json
 
-# last update at 2023.5.5 po18 未更新，百合会未抓全
+# last update at 2023.8.22.5 po18 未更新，百合会未抓全
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -16,16 +16,17 @@ class YuriSpider(scrapy.Spider):
     def parse(self, response):
         current_page_list = []
         for tr in response.css('table.cytable tr')[1:]:
+            type_str = tr.css('td:nth-child(3)::text').get().strip()
             current_novel = {
                 'author': tr.css('td:first-child>a::text').get().strip(),
                 'author_url': 'https://www.jjwxc.net/' + tr.css('td:first-child>a::attr(href)').get().strip(),
                 'title': tr.css('td:nth-child(2)>a::text').get().strip() if tr.css('td:nth-child(2)>a::text').get() != None else '***',
                 'book_url':'https://www.jjwxc.net/' +  tr.css('td:nth-child(2)>a::attr(href)').get().strip(),
-                'type': tr.css('td:nth-child(3)::text').get().strip(),  # 原创-百合-近代现代-爱情
-                'style': tr.css('td:nth-child(4)::text').get().strip(),  # 暗黑
-                'status': [i.strip() for i in tr.css('td:nth-child(5) *::text').getall() if len(i.strip()) > 0][0],
-                'wordcount': tr.css('td:nth-child(6)::text').get().strip(),
-                'publish_time': tr.css('td:nth-child(8)::text').get().strip(),
+                'type': '-'.join(type_str.split('-')[:-1]),  # 原创-百合-近代现代-爱情
+                'style': type_str.split('-')[-1],  # 暗黑
+                'status': [i.strip() for i in tr.css('td:nth-child(4) *::text').getall() if len(i.strip()) > 0][0],
+                'wordcount': tr.css('td:nth-child(5)::text').get().strip(),
+                'publish_time': tr.css('td:nth-child(7)::text').get().strip(),
             }
             if '完' in current_novel['status']:
                 current_novel['status'] = '完结'
@@ -184,13 +185,13 @@ class CpSpider(scrapy.Spider):
                 'author': j['novel_author'],
                 'author_url': 'https://www.gongzicp.com/zone/author-{}.html'.format(j['author_id']),
                 'style': '',
-                'type': j['type_name'],
+                'type': '',
                 'publish_time': j['novel_uptime'],
                 'status': j['novel_process_text'],
                 'cover': j['novel_cover'],
                 'wordcount': str(j['novel_wordnumber']).replace(',', ''),
                 'tags': j['novel_tags'],
-                'searchKeyword': j['novel_desc'],
+                'searchKeyword': j['novel_info'],
                 'description': ''
             }
             if not '-' in current_novel['publish_time']:
@@ -235,6 +236,15 @@ class Po18Spider(scrapy.Spider):
     def __init__(self):
         self.page_count = 1
         self.base_url = 'https://www.po18.tw/tags/subbooks?id=23_'
+
+    def start_requests(self):
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+            'Referer': 'https://www.po18.tw/tags',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+        for url in self.start_urls:
+            yield scrapy.Request(url, headers=headers)
 
     def parse(self, response):
         divs = response.css('#w0.list-view>div')
