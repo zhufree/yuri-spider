@@ -2,7 +2,7 @@ import scrapy
 from pyunit_time import Time
 import time, re, json
 
-# last update at 2023.8.22.5 po18 未更新，百合会未抓全
+# last update at 2023.9.20 jj, cp(500), po18(100), popo(50)
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -201,11 +201,11 @@ class CpSpider(scrapy.Spider):
             if len(current_novel['publish_time']) < 6:
                 current_novel['publish_time'] = self.current_year + '-' + current_novel['publish_time']
             book_api = 'https://webapi.gongzicp.com/novel/novelGetInfo?id={}'.format(j['novel_id'])
-            time.sleep(0.5)
+            time.sleep(1)
             yield scrapy.Request(book_api, self.parse_novel_page, 
                 cb_kwargs=dict(data=current_novel))
             
-        if len(novel_list) == 10 and self.page_count < 10: # 前100条
+        if len(novel_list) == 10 and self.page_count < 50: # 前500条
             self.page_count += 1
             next_page = self.base_url.format(self.page_count)
             time.sleep(0.5)
@@ -232,19 +232,19 @@ class Po18Spider(scrapy.Spider):
     name = 'po18'
     allowed_domains = ['www.po18.tw']
     start_urls = ['https://www.po18.tw/tags/subbooks?id=23_'] #按最新章回的更新时间排序的
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        'Referer': 'https://www.po18.tw/tags',
+        'X-Requested-With': 'XMLHttpRequest'
+    }
 
     def __init__(self):
         self.page_count = 1
         self.base_url = 'https://www.po18.tw/tags/subbooks?id=23_'
 
     def start_requests(self):
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
-            'Referer': 'https://www.po18.tw/tags',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
         for url in self.start_urls:
-            yield scrapy.Request(url, headers=headers)
+            yield scrapy.Request(url, headers=self.headers)
 
     def parse(self, response):
         divs = response.css('#w0.list-view>div')
@@ -267,13 +267,13 @@ class Po18Spider(scrapy.Spider):
             item['tags'] = list(set(item['tags']))
             item['aid'] = 'po18-' + item['author']
 
-            yield scrapy.Request(item['book_url'], callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
+            yield scrapy.Request(item['book_url'], headers=self.headers, callback=self.parse_detail, meta={'dont_redirect': True,'handle_httpstatus_list': [302]}, 
                 cb_kwargs=dict(data=item))
 
         if len(divs) == 10 and self.page_count < 10:
             self.page_count += 1
             next_page = self.base_url + '&page={}'.format(self.page_count)
-            yield scrapy.Request(next_page, callback=self.parse)
+            yield scrapy.Request(next_page, headers=self.headers, callback=self.parse)
 
     def parse_detail(self, response, data):
         data['description'] = response.css('.B_I_content').get()

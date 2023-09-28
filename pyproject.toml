@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "yuri_spider"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 Scrapy = "^2.8.0"
 pyunit-time = "^2021.2.2"
 pyquery = "^2.0.0"
