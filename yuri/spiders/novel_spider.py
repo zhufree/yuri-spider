@@ -1,7 +1,8 @@
 import scrapy
 from pyunit_time import Time
-import time, re, json
-
+import time, re
+import requests
+from http.cookies import SimpleCookie
 # last update at 2023.9.20 jj, cp(500), po18(100), popo(50)
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
@@ -347,50 +348,6 @@ class PoSpider(scrapy.Spider):
         if first_item != None:
             data['publish_time'] = first_item.split(' ')[1]
         yield data
-
-
-class NUSpider(scrapy.Spider):
-    name = 'nu'
-    start_urls = ['https://www.novelupdates.com/series-finder/?sf=1&org=495&nt=2444&gi=922&mgi=and&sort=sdate&order=desc']
-    page_count = 0
-    def parse(self, response):
-        current_page_list = []
-        for div in response.css('.search_main_box_nu'):
-            current_novel = {
-                'title': div.css('.search_title>a::text').get().strip(),
-                'nu_url': div.css('.search_title>a::attr(href)').get(),
-                'updated_chapters': div.css('.ss_desk:first-child::text').get().strip().split(' ')[0],
-                'updates_frequency': div.css('.ss_desk:nth-child(2)::text').get().strip().split(' ')[1],
-                'readers': div.css('.ss_desk:nth-child(3)::text').get().strip().split(' ')[0],
-                'reviews': div.css('.ss_desk:nth-child(4)::text').get().strip().split(' ')[0],
-                'last_update_time': div.css('.ss_desk:nth-child(5)::text').get().strip(),
-                'genres': div.css('.search_genre>a::text').getall(),
-                'rating': div.css('.search_ratings::text').get().strip()[1:-1],
-            }
-            current_page_list.append(current_novel)
-            # open novel page for more info
-            yield scrapy.Request(current_novel['nu_url'], self.parse_detail, 
-                cb_kwargs=dict(data=current_novel))
-            # yield current_novel
-
-        # next page
-        next_page = response.css('a.next_page::attr(href)').get()
-        if len(current_page_list) >= 25 and self.page_count < 9: # 根据时间修改page count
-            next_page = response.urljoin(next_page)
-            self.page_count += 1
-            yield scrapy.Request(next_page, callback=self.parse)
-
-    def parse_detail(self, response, data):
-        data['associated_names'] = response.css('#editassociated::text').getall()
-        data['tags'] = response.css('#showtags > a::text').getall()
-        data['authors'] = response.css('#showauthors > a::text').getall()
-        publisher = response.css('#showopublisher > a::text').get()
-        data['platform'] = publisher.strip() if publisher else None
-        translated = response.css('#showtranslated::text').get()
-        print('(' + translated.strip() + ')')
-        data['complete_translated'] = translated.strip() if translated.strip() != '' else response.css('#showtranslated > a::text').get()
-        yield data
-
 
 class YamiboSpider(scrapy.Spider):
     name = 'yamibo'

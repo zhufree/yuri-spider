@@ -101,3 +101,13 @@ class JjyuriDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class DebugCookiesMiddleware:
+    def process_request(self, request, spider):
+        spider.logger.info(request.headers['User-Agent'])
+        spider.logger.info(request.cookies)
+
+    def process_response(self, request, response, spider):
+        spider.logger.info(response.headers.getlist('Set-Cookie'))
+        return response
