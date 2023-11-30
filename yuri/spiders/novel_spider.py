@@ -3,7 +3,7 @@ from pyunit_time import Time
 import time, re
 import requests
 from http.cookies import SimpleCookie
-# last update at 2023.9.20 jj, cp(500), po18(100), popo(50)
+# last update at 2023.11.30 jj, cp(500), yamibo
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 
@@ -161,7 +161,7 @@ class HaitangSpider(scrapy.Spider):
             data['publish_time'] = time_search.group(1)
         yield data
 
-# 默认只抓前100条
+# 默认只抓前500条
 class CpSpider(scrapy.Spider):
     name = 'changpei'
     allowed_domains = ['gongzicp.com']
@@ -377,6 +377,7 @@ class YamiboSpider(scrapy.Spider):
             current_novel['aid'] = 'ymb' + current_novel['author_url'].split('=')[-1]
             current_page_list.append(current_novel)
             # open novel page for more info
+            time.sleep(1)
             yield scrapy.Request(current_novel['book_url'], self.parse_detail, 
                 cb_kwargs=dict(data=current_novel))
             # yield current_novel
@@ -386,6 +387,7 @@ class YamiboSpider(scrapy.Spider):
         if len(current_page_list) >= 50:
             next_page = response.urljoin(next_page)
             self.page_count += 1
+            time.sleep(0.5)
             yield scrapy.Request(next_page, callback=self.parse)
 
     def parse_detail(self, response, data):

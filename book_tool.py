@@ -194,8 +194,12 @@ def add_tags(platform):
             for tag_id in tag_ids: # insert book-tag relation one by one
                 if book_id not in book_tag_dict.keys() or tag_id not in book_tag_dict[book_id]:
                     # check if the tag and book connection exist
-                    cursor.execute("INSERT INTO books_tags_links (book_id, tag_id) \
-                    VALUES ({}, {})".format(book_id, tag_id))
+                    try:
+                        cursor.execute("INSERT INTO books_tags_links (book_id, tag_id) \
+                        VALUES ({}, {})".format(book_id, tag_id))
+                    except Exception as e:
+                        print(e)
+                        print(book_id, tag_id)
         connect.commit()
         connect.close()
 
@@ -205,9 +209,9 @@ if __name__ == '__main__':
         'jjwxc',
         'changpei',
         # 'haitang',
-        'po18',
-        'popo',
-        # 'yamibo'
+        # 'po18',
+        # 'popo',
+        'yamibo'
     ]
     for p in platforms:
         save_author(p)
