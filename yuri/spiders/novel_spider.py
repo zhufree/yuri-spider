@@ -4,6 +4,7 @@ import time, re
 import requests
 from http.cookies import SimpleCookie
 # last update at 2023.11.30 jj, cp(500), yamibo
+# todo yamibo wordcount bug
 class YuriSpider(scrapy.Spider):
     name = "jjwxc"
 

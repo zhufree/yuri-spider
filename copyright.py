@@ -29,7 +29,7 @@ for i in range(1, 8):
 		style = row('td:nth-child(5)').text()
 		if '百合' in style:
 			book = {
-				'id': row('td:nth-child(1)').text(),
+				'id': (i-1)*500 + int(row('td:nth-child(1)').text()),
 				'type': row('td:nth-child(2)').text(),
 				'title':row('td:nth-child(3)').text(),
 				'author': row('td:nth-child(4)').text(),
@@ -37,6 +37,7 @@ for i in range(1, 8):
 				'style': style,
 			}
 			# get bid
+			print(book)
 			bid = 'jj' + book['url'].split('=')[-1]
 			adapted_str = get_adapted_str(book['type'])
 			if adapted_str == None:
@@ -55,11 +56,11 @@ for i in range(1, 8):
 				for row in copyright_rows:
 					copyright_id = row[0]
 				if copyright_id:
-					# if exist, update data
-					cursor.execute(f'UPDATE copyright_infos SET adapted_{adapted_str} = true WHERE id = {copyright_id}')
+					# if exist, update data and update time
+					cursor.execute(f'UPDATE copyright_infos SET adapted_{adapted_str} = true, jj_index = {book["id"]} WHERE id = {copyright_id}')
 				else:
 					# if not exist, create new copyright info
-					cursor.execute(f'INSERT INTO copyright_infos (adapted_{adapted_str}) VALUES (true)')
+					cursor.execute(f'INSERT INTO copyright_infos (adapted_{adapted_str}, jj_index) VALUES (true, {book["id"]})')
 					copyright_id = cursor.lastrowid
 					cursor.execute(f'INSERT INTO copyright_infos_book_links (copyright_info_id, book_id) VALUES (?, ?)', (copyright_id, exist_book))
 			else:
